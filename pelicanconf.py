@@ -4,9 +4,9 @@ from __future__ import unicode_literals
 
 AUTHOR = 'zienjih'
 SITENAME = 'Techspace'
-SITEURL = ''
+SITEURL = 'jayzh7.github.io'
 
-PATH = '../'
+PATH = '.'
 
 TIMEZONE = 'Europe/Paris'
 
