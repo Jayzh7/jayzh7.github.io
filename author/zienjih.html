@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>Techspace - zienjih</title>
+        <link rel="stylesheet" href="jayzh7.github.io/theme/css/main.css" />
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="jayzh7.github.io/">Techspace </a></h1>
+                <nav><ul>
+                    <li><a href="jayzh7.github.io/pages/about-me.html">about me</a></li>
+                    <li><a href="jayzh7.github.io/category/notes.html">notes</a></li>
+                    <li><a href="jayzh7.github.io/category/other.html">Other</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href="jayzh7.github.io/process-manipulation-in-linux.html">Process manipulation in Linux</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2020-04-05T13:55:00+01:00">
+                Published: Sun 05 April 2020
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="jayzh7.github.io/author/zienjih.html">zienjih</a>
+        </address>
+<p>In <a href="jayzh7.github.io/category/notes.html">notes</a>.</p>
+<p>tags: <a href="jayzh7.github.io/tag/linux.html">Linux</a> </p>
+</footer><!-- /.post-info --><!-- $$ \usepackage{amsmath} $$  -->
+
+<h2>Intro</h2>
+<p>In this blog, we will talk about process monitoring commands (<code>ps</code> and <code>top</code>) and process manipulation (kill, pause, suspend, etc.)  in Linux.</p>
+<h2>Process Monitoring</h2>
+<h3>ps - process snapshot</h3>
+<p>To monitor the number of running processes on the machine the user is logged into, a general purpose process status command <code>ps</code> can be used. </p>
+<p>Formally speaking, </p>
+<blockquote>
+<p><strong><em>ps</em></strong> displays information about a selection of active processes. If you want a repetitive update of the selection and the displayed information, use <strong><em>top</em></strong> instead.  </p>
+</blockquote>
+<p>By default (no arguments provided), process ID (<strong>PID</strong>), terminal associated with the process (<strong>TTY</strong>), the cumulated CPU time in hh:mm:ss format (<strong>TIME</strong>), and executable name (<strong>CMD</strong>) of <strong>the current shell</strong> are displayed.</p>
+<h4>command line options</h4>
+<p><code>ps</code> accepts several kinds of options:
+1. UNIX options, can be grouped, must be preceded by a dash.
+2. BSD options, can be grouped, <strong><em>no dash</em></strong>. Process state included in the display. Processes on other terminals are also included.
+3. GNU long options, preceded by two dashes.</p>
+<p>we will mainly focus on the UNIX options as an foundation.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>functionality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-A</code> or <code>-e</code></td>
+<td>List all processes</td>
+</tr>
+<tr>
+<td><code>-f</code></td>
+<td>full-format listing</td>
+</tr>
+<tr>
+<td><code>-x</code></td>
+<td>current user owned process only</td>
+</tr>
+<tr>
+<td><code>-u user_id</code></td>
+<td>processes owned by specified user</td>
+</tr>
+<tr>
+<td><code>-t tty_name</code></td>
+<td>select process by terminal</td>
+</tr>
+<tr>
+<td><code>-o format</code></td>
+<td>display in user defined format</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>display top running processes by memory usage</li>
+</ul>
+<div class="highlight"><pre><span></span>ps -eo pid,ppid,cmd,%mem,%cpu --sort<span class="o">=</span>-%mem <span class="p">|</span> head
+</pre></div>
+
+
+<h3>top</h3>
+<p>As mentioned before, <code>top</code> can be used to monitor the running system in real-time, i.e., regularly update the displayed information. It can also display system summary information, of which order, type, size can be configured as per user's perference.</p>
+<h4>operation</h4>
+<p><code>top</code> command often produces a long output which usually streches out a window. To slide, motion keys (<code>up</code>, <code>down</code>, <code>left</code>, <code>right</code>), <code>PgUp</code>, <code>PgDn</code>, <code>Home</code>, <code>End</code> work as they usually do.</p>
+<h4>command line options</h4>
+<p>As always, you can rely on <code>-h</code> for help. Other useful options include:
+1. Exit after specific repetition. By default, it keeps refreshing until you press <code>q</code>.</p>
+<div class="highlight"><pre><span></span>    top -n <span class="m">10</span>
+</pre></div>
+
+
+<ol>
+<li>Only display processes belong to a specific user.</li>
+</ol>
+<div class="highlight"><pre><span></span>    top -u user_id
+</pre></div>
+
+
+<ol>
+<li>Highlight running processes color by pressing <code>z</code>.</li>
+<li>Show absolute path of processes by pressing <code>c</code>.</li>
+<li>Kill a running process while keeping the command running by pressing <code>k</code>.</li>
+<li>Sort the processes by CPU utilisation by pressing <code>shift</code>+<code>p</code>.</li>
+<li>see <a href="http://man7.org/linux/man-pages/man1/top.1.html">manual</a> for more options and explanation of the summary info.  </li>
+</ol>
+<h2>Process manipulation</h2>
+<blockquote>
+<p>A process refers to a program in execution; it's a running instance of a program.
+Each process has its unique process ID (PID) and its parent process ID (PPID).</p>
+</blockquote>
+<h3>Types of processes</h3>
+<ul>
+<li>Foreground processes (interactive processes).</li>
+<li>Background processes (non-interactive processes).<br>
+or</li>
+<li>Parent process - create other processes at runtime</li>
+<li>Child process - get created by other processes.</li>
+</ul>
+<p>Init process is the mother of all processes on the system with a PID of 1. It adopts all orphaned processes. The PID of a process can be obtained by command <code>pidof process_name</code>.</p>
+<h3>States of processes</h3>
+<p>A linux process state transition graph. Image credit goes to <a href="https://www.tecmint.com/linux-process-management/">Tecmint</a>.
+<img alt="alt text" src="jayzh7.github.io/images/ProcessState.png"></p>
+<h3>Creation of a process</h3>
+<ul>
+<li>Use system functions - simple but inefficient and insecure</li>
+<li>Use fork() and exec() - more flexibility, speed, and security.</li>
+</ul>
+<h3>Background jobs</h3>
+<p>To start a process in the background (non-interactive), <code>&amp;</code> symbol makes the command precedes it run in the background. (BTW, <code>&amp;&amp;</code> concatenates two sequential operations).</p>
+<blockquote>
+<p>If a command is terminated by the control operator &amp;, the shell executes the command in the background in a subshell. The shell does not wait for the command to finish, and the return status is 0.</p>
+</blockquote>
+<p>Once you've started a job in the foreground, you can also send it to the background by suspending it first using <code>Ctrl+Z</code>, and continue it in the background by <code>bg</code> command. To bring it foregound againn, use command <code>fg %job_id</code>, the job id in which <code>job_id</code> can be found by using <code>jobs</code>. It is worth noting that the process will still output to the terminal even it is in the background and it is going to be messy if you try to type a command when the output is frequent (your input will be mixed with the process output).</p>
+<div class="highlight"><pre><span></span>qsh@ghildes&gt; sleep <span class="m">100</span>
+<span class="o">(</span>Ctrl+Z<span class="o">)</span>
+<span class="o">[</span><span class="m">1</span><span class="o">]</span>+  Stopped                 sleep <span class="m">100</span>
+qsh@ghildes&gt; <span class="nb">jobs</span>
+<span class="o">[</span><span class="m">1</span><span class="o">]</span>+  Stopped                 sleep <span class="m">100</span>
+qsh@ghildes&gt; <span class="nb">bg</span> %1 
+<span class="o">[</span><span class="m">1</span><span class="o">]</span>+ sleep <span class="m">100</span> <span class="p">&amp;</span>
+qsh@ghildes&gt; <span class="nb">fg</span> %1
+sleep <span class="m">100</span>
+</pre></div>
+
+
+<p>If only one job in the bg/fg, job id can be omitted.  </p>
+<p>Delete a suspended process by <code>kill</code> command followed by job id. Delete a process running in the foreground can be done by a simple <code>Ctrl+C</code>. Also, process can be killed by providing its PID.</p>
+<div class="highlight"><pre><span></span>qsh@ghildes&gt; xclock <span class="p">&amp;</span>
+<span class="o">[</span><span class="m">1</span><span class="o">]</span> <span class="m">31176</span>
+qsh@ghildes&gt; <span class="nb">kill</span> -9 <span class="m">31176</span>
+<span class="o">[</span><span class="m">1</span><span class="o">]</span>+  Killed                  xclock
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>qsh@ghildes&gt; xclock <span class="p">&amp;</span>
+<span class="o">[</span><span class="m">1</span><span class="o">]</span> <span class="m">32012</span>
+qsh@ghildes&gt; <span class="nb">kill</span> %1
+<span class="o">[</span><span class="m">1</span><span class="o">]</span>+  Terminated              xclock
+</pre></div>
+
+
+<h2>Reference</h2>
+<p><a href="http://man7.org/linux/man-pages/man1/ps.1.html"><em>ps(1) - Linux manual page</em></a><br>
+<a href="http://man7.org/linux/man-pages/man1/top.1.html"><em>top(1) - Linux manual page</em></a>
+<a href="http://www.physics.smu.edu/coan/linux/processes.html"><em>Manipulating processes in Linux</em></a><br>
+<a href="https://www.geeksforgeeks.org/top-command-in-linux-with-examples/"><em>top command in Linux with Examples</em></a><br>
+<a href="https://www.tecmint.com/ps-command-examples-for-linux-process-monitoring/"><em>30 Useful ‘ps Command’ Examples for Linux Process Monitoring</em></a></p>
+<hr>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="jayzh7.github.io/basics-of-linear-algebra-for-machine-learning.html" rel="bookmark"
+                           title="Permalink to Basics of linear algebra for machine learning">Basics of linear algebra for machine learning</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2020-01-28T20:47:00+08:00">
+                Published: Tue 28 January 2020
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="jayzh7.github.io/author/zienjih.html">zienjih</a>
+        </address>
+<p>In <a href="jayzh7.github.io/category/notes.html">notes</a>.</p>
+<p>tags: <a href="jayzh7.github.io/tag/ml.html">ML</a> </p>
+</footer><!-- /.post-info -->                <!-- $$ \usepackage{amsmath} $$  -->
+
+<h2>Scalar, Vector, Matrices and Tensors</h2>
+<ul>
+<li><strong>Scalars</strong>: A single number, written in italics, lower-case $$ \alpha $$.</li>
+<li><strong>Vectors</strong>: An array of numbers, written in lower-case and bold typeface, such as <strong><em>x</em></strong>.</li>
+<li><strong>Matrices</strong> : 2-D array of numbers, wriiten in upper-case and bold typeface, such as <strong><em>A</em></strong>. Elements can be identifies using </li>
+<li><strong>Tensors</strong> : array with …</li></ul>
+                <a class="readmore" href="jayzh7.github.io/basics-of-linear-algebra-for-machine-learning.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="jayzh7.github.io/working-with-remote-server-powered-with-gpus.html" rel="bookmark"
+                           title="Permalink to Working with remote server powered with GPUs">Working with remote server powered with GPUs</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2020-01-10T20:00:00+08:00">
+                Published: Fri 10 January 2020
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="jayzh7.github.io/author/zienjih.html">zienjih</a>
+        </address>
+<p>In <a href="jayzh7.github.io/category/notes.html">notes</a>.</p>
+<p>tags: <a href="jayzh7.github.io/tag/ml.html">ML</a> </p>
+</footer><!-- /.post-info -->                <h2>Package management</h2>
+<h2>Conda related Commands</h2>
+<p>As a non-root user, I don't have root access to the whole server. Installations are limited to my sub-folder only. To be able to work in an environment of more flexibility, a Conda environment needs to be created.</p>
+<p>First, you would like to check the …</p>
+                <a class="readmore" href="jayzh7.github.io/working-with-remote-server-powered-with-gpus.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="jayzh7.github.io/is-the-economic-crisis-approching.html" rel="bookmark"
+                           title="Permalink to Is the economic crisis approching?">Is the economic crisis approching?</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2020-01-04T00:00:00+01:00">
+                Published: Sat 04 January 2020
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="jayzh7.github.io/author/zienjih.html">zienjih</a>
+        </address>
+<p>In <a href="jayzh7.github.io/category/other.html">Other</a>.</p>
+<p>tags: <a href="jayzh7.github.io/tag/economics.html">Economics</a> </p>
+</footer><!-- /.post-info -->                <p>analysis of the possiblity of a economic crisis</p>
+                <a class="readmore" href="jayzh7.github.io/is-the-economic-crisis-approching.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="jayzh7.github.io/the-use-of-cat-in-combination-with-other-linux-commands.html" rel="bookmark"
+                           title="Permalink to The use of cat in combination with other linux commands">The use of cat in combination with other linux commands</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2019-12-27T21:26:40+01:00">
+                Published: Fri 27 December 2019
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="jayzh7.github.io/author/zienjih.html">zienjih</a>
+        </address>
+<p>In <a href="jayzh7.github.io/category/notes.html">notes</a>.</p>
+<p>tags: <a href="jayzh7.github.io/tag/linux.html">Linux</a> </p>
+</footer><!-- /.post-info -->                <h2>Intro</h2>
+<p>When searching for something in a file, we may want to look into a specific location of a file. The most straightforward way for me to handle this would be <code>vim</code> it and then <code>pg down</code>. It becomes less realistic when the file size grows larger.</p>
+<p>Linux provides us …</p>
+                <a class="readmore" href="jayzh7.github.io/the-use-of-cat-in-combination-with-other-linux-commands.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
+                </ol><!-- /#posts-list -->
+                </section><!-- /#content -->
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>links</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>
