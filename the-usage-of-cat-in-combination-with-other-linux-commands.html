@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+          <title>Techspace - The usage of cat in combination with other linux commands</title>
+        <meta charset="utf-8" />
+
+       <link rel="stylesheet" type="text/css" href="/theme/css/style.css" />
+
+
+
+
+    <meta name="tags" content="Linux" />
+
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace <strong></strong></a></h1>
+        </header><!-- /#banner -->
+        <nav id="menu"><ul>
+            <li><a href="/pages/about-me.html">about me</a></li>
+            <li><a href="/pages/contact-me.html">contact me</a></li>
+            <li class="active"><a href="/category/notes.html">notes</a></li>
+            <li><a href="/category/other.html">Other</a></li>
+        </ul></nav><!-- /#menu -->
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="/the-usage-of-cat-in-combination-with-other-linux-commands.html" rel="bookmark"
+         title="Permalink to The usage of cat in combination with other linux commands">The usage of cat in combination with other linux commands</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2019-12-27T21:26:40+01:00">
+      Fri 27 December 2019
+    </time>
+    <address class="vcard author">
+      By           <a class="url fn" href="/author/zienjih.html">zienjih</a>
+    </address>
+    <div class="category">
+        Category: <a href="/category/notes.html">notes</a>
+    </div>
+    <div class="tags">
+        Tags:
+            <a href="/tag/linux.html">Linux</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <h2>Intro</h2>
+<p>When searching for something in a file, we may want to look into a specific location of a file. The most straightforward way for me to handle this would be <code>vim</code> it and then <code>pg down</code>. It becomes less realistic when the file size grows larger.</p>
+<p>Linux provides us with several commands (editor) to suit different needs. For instance,  <code>cat</code>, <code>vim</code>, <code>grep</code>, etc.</p>
+<h2>cat</h2>
+<p><code>cat</code> is short for "<strong>concatenate</strong>". It allows us to create one or more files, view contents, concatenate files, and redirect output to terminals or files.</p>
+<h3>view contents</h3>
+<p><code>cat</code> will direct all contents of a file to std output (therefore can be combined with pipe to see only part of it).</p>
+<div class="highlight"><pre><span></span>$ cat /etc/os-release 
+<span class="nv">NAME</span><span class="o">=</span><span class="s2">&quot;Scientific Linux&quot;</span>
+<span class="nv">VERSION</span><span class="o">=</span><span class="s2">&quot;7.6 (Nitrogen)&quot;</span>
+...
+
+$ cat file1 file2
+contents of file1
+contents of file2
+</pre></div>
+
+
+<h3>create a new file</h3>
+<p>Input from terminal can also be redirected into a file with <code>cat</code>. Finish input by <code>ctrl+d</code>.</p>
+<div class="highlight"><pre><span></span>$ cat &gt; text
+input here
+</pre></div>
+
+
+<h3>redirect to other commands</h3>
+<p>If the contents of a file is too much to fit into the terminal and overwhelms scrolling, we can redirect the output to other commands (e.g. <code>less</code>, <code>more</code>) for better viewing.</p>
+<h4>less and more</h4>
+<p><code>less</code> can be used for openning a file for interactive reading, scrolling (both forward and backward), and searching.</p>
+<h5>go forward, go backward</h5>
+<p><code>space</code> or <code>enter</code>, <code>b</code></p>
+<h5>forward search, backward search</h5>
+<p><code>/word</code>, <code>?word</code>  </p>
+<h5>next match, previous match</h5>
+<p><code>n</code>, <code>N</code>  </p>
+<h5>display text from line 10</h5>
+<p><code>more +10 text.txt</code>  </p>
+<h5>prompt you to continue reading by space</h5>
+<p><code>more -d text.txt</code>  </p>
+<h4>grep</h4>
+<p><code>grep</code> can be used for searching a pattern in a document and presenting the result in a customized format. Regular expression is supported.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th align="center">Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-v</td>
+<td align="center">Shows all the lines that do not match the searched string</td>
+</tr>
+<tr>
+<td>-c</td>
+<td align="center">Displays only the count of matching lines</td>
+</tr>
+<tr>
+<td>-n</td>
+<td align="center">Shows the matching line and its number</td>
+</tr>
+<tr>
+<td>-i</td>
+<td align="center">Match both (upper and lower) case</td>
+</tr>
+<tr>
+<td>-l</td>
+<td align="center">Shows just the name of the file with the string</td>
+</tr>
+</tbody>
+</table>
+<h4>sort</h4>
+<p>As the name suggests, it sorts the contents of a file alphabetically.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th align="center">Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-r</td>
+<td align="center">Reverses  sorting</td>
+</tr>
+<tr>
+<td>-n</td>
+<td align="center">Sorts numerically</td>
+</tr>
+<tr>
+<td>-f</td>
+<td align="center">Case insensitive sorting</td>
+</tr>
+</tbody>
+</table>
+<h3>useful options of cat</h3>
+<div class="highlight"><pre><span></span>$ cat -n /etc/passwd  <span class="c1"># display line numbers in file</span>
+$ cat -e <span class="nb">test</span>  <span class="c1"># display $ at the end of line</span>
+hello everyone, how <span class="k">do</span> you <span class="k">do</span>?$
+$
+Hey, I am fine.$
+How is  your training going on?$
+$
+</pre></div>
+
+
+<h2>Use std output with redirection operators</h2>
+<p>Note the use of one and two redirection operators.</p>
+<div class="highlight"><pre><span></span>$ cat <span class="nb">test</span> &gt; test1  <span class="c1"># contents in test will overwrite contents in test1 </span>
+$ cat <span class="nb">test</span> &gt;&gt; test1 <span class="c1"># contents in test will be appended into test1</span>
+</pre></div>
+
+
+<h2>examples</h2>
+<div class="highlight"><pre><span></span>$ cat -n /etc/os-release <span class="p">|</span> less +10  
+    <span class="m">10</span>  <span class="nv">BUG_REPORT_URL</span><span class="o">=</span><span class="s2">&quot;mailto:scientific-linux-devel@listserv.fnal.gov&quot;</span>
+    <span class="m">11</span>  
+    <span class="m">12</span>  <span class="nv">REDHAT_BUGZILLA_PRODUCT</span><span class="o">=</span><span class="s2">&quot;Scientific Linux 7&quot;</span>
+    <span class="m">13</span>  <span class="nv">REDHAT_BUGZILLA_PRODUCT_VERSION</span><span class="o">=</span><span class="m">7</span>.6
+    <span class="m">14</span>  <span class="nv">REDHAT_SUPPORT_PRODUCT</span><span class="o">=</span><span class="s2">&quot;Scientific Linux&quot;</span>
+    <span class="m">15</span>  <span class="nv">REDHAT_SUPPORT_PRODUCT_VERSION</span><span class="o">=</span><span class="s2">&quot;7.6&quot;</span>
+$ cat &gt; text
+dbac  
+cba
+ba
+a<span class="o">(</span>ctrl+d to end input<span class="o">)</span>
+$ cat text <span class="p">|</span> grep a
+</pre></div>
+
+
+<p>db<span style="color:red">a</span>c<br>
+cb<span style="color:red">a</span><br>
+b<span style="color:red">a</span><br>
+<span style="color:red">a</span>  </p>
+<div class="highlight"><pre><span></span>$ cat text <span class="p">|</span> sort <span class="p">|</span> grep a
+</pre></div>
+
+
+<p><span style="color:red">a</span><br>
+b<span style="color:red">a</span><br>
+cb<span style="color:red">a</span><br>
+db<span style="color:red">a</span>c  </p>
+<h2>Summary</h2>
+<p><code>cat</code> is powerful especially when combined with other commands as well as pipe.</p>
+<h2>References</h2>
+<p><a href="https://www.guru99.com/linux-pipe-grep.html"><em>Pipe, Grep and Sort Command in Linux/Unix with Examples</em></a><br>
+<a href="https://www.ostechnix.com/the-difference-between-more-less-and-most-commands/"><em>The Difference Between more, less And most Commands</em></a><br>
+<a href="https://www.tecmint.com/13-basic-cat-command-examples-in-linux/"><em>13 Basic Cat Command Examples in Linux</em></a></p>
+  </div><!-- /.entry-content -->
+</section>
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>,
+                which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+        </footer><!-- /#contentinfo -->
+</body>
+</html>
