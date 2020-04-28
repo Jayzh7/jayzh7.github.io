@@ -84,7 +84,7 @@ Init process is the mother of all processes on the system with a PID of 1. It ad
 
 ### States of processes
 A linux process state transition graph. Image credit goes to [Tecmint](https://www.tecmint.com/linux-process-management/).
-![alt text]({static}/images/ProcessState.png)
+![Process state]({static}/images/ProcessState.png)
 
 ### Creation of a process
 * Use system functions - simple but inefficient and insecure

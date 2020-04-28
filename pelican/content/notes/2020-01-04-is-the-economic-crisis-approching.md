@@ -5,6 +5,7 @@ title: Is the economic crisis approching?
 date: '2020-01-04'
 tags: Economics
 category: Other
+visisble: False
 summary: analysis of the possiblity of a economic crisis
 ---
 ## Intro
