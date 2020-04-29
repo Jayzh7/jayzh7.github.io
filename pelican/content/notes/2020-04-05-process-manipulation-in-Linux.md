@@ -87,10 +87,12 @@ A linux process state transition graph. Image credit goes to [Tecmint](https://w
 ![Process state]({static}/images/ProcessState.png)
 
 ### Creation of a process
+
 * Use system functions - simple but inefficient and insecure
 * Use fork() and exec() - more flexibility, speed, and security.
 
 ### Background jobs
+
 To start a process in the background (non-interactive), `&` symbol makes the command precedes it run in the background. (BTW, `&&` concatenates two sequential operations).
 >If a command is terminated by the control operator &, the shell executes the command in the background in a subshell. The shell does not wait for the command to finish, and the return status is 0.
 
