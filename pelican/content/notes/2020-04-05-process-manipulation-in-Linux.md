@@ -6,14 +6,15 @@ date: 2020-04-05 13:55:00 +0100
 category: notes
 tags: Linux
 comments: true
-summary: Process monitoring and manipulation commands in Linux
+summary:  process monitoring commands (`ps` and `top`) and process manipulation (kill, pause, suspend, etc.)  in Linux.
 ext-js: https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML
 ---
 <!-- $$ \usepackage{amsmath} $$  -->
-## Intro
-In this blog, we will talk about process monitoring commands (`ps` and `top`) and process manipulation (kill, pause, suspend, etc.)  in Linux.
 
-## Process Monitoring
+## 1 Process Monitoring
+
+---
+
 ### ps - process snapshot
 To monitor the number of running processes on the machine the user is logged into, a general purpose process status command `ps` can be used. 
 
@@ -41,39 +42,51 @@ we will mainly focus on the UNIX options as an foundation.
  `-t tty_name` | select process by terminal
  `-o format` | display in user defined format
 
++ display top running processes by memory usage
 
-* display top running processes by memory usage
 ```bash
 ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem | head
 ```
 
-
 ### top  
+
 As mentioned before, `top` can be used to monitor the running system in real-time, i.e., regularly update the displayed information. It can also display system summary information, of which order, type, size can be configured as per user's perference.
+
 #### operation
+
 `top` command often produces a long output which usually streches out a window. To slide, motion keys (`up`, `down`, `left`, `right`), `PgUp`, `PgDn`, `Home`, `End` work as they usually do.
 
 #### command line options
+
 As always, you can rely on `-h` for help. Other useful options include:
+
 1. Exit after specific repetition. By default, it keeps refreshing until you press `q`.
+
 ```bash
     top -n 10
 ```
+
 2. Only display processes belong to a specific user.
+
 ```bash
     top -u user_id
 ```
+
 3. Highlight running processes color by pressing `z`.
 4. Show absolute path of processes by pressing `c`.
 5. Kill a running process while keeping the command running by pressing `k`.
 6. Sort the processes by CPU utilisation by pressing `shift`+`p`.
 7. see [manual](http://man7.org/linux/man-pages/man1/top.1.html) for more options and explanation of the summary info.  
 
-
 ## Process manipulation
+
+---
+
 > A process refers to a program in execution; it's a running instance of a program.
 Each process has its unique process ID (PID) and its parent process ID (PPID).
+
 ### Types of processes
+
 * Foreground processes (interactive processes).
 * Background processes (non-interactive processes).  
 or
@@ -83,13 +96,14 @@ or
 Init process is the mother of all processes on the system with a PID of 1. It adopts all orphaned processes. The PID of a process can be obtained by command `pidof process_name`.
 
 ### States of processes
+
 A linux process state transition graph. Image credit goes to [Tecmint](https://www.tecmint.com/linux-process-management/).
 ![Process state]({static}/images/ProcessState.png)
 
 ### Creation of a process
 
-* Use system functions - simple but inefficient and insecure
-* Use fork() and exec() - more flexibility, speed, and security.
++ Use system functions - simple but inefficient and insecure
++ Use fork() and exec() - more flexibility, speed, and security.
 
 ### Background jobs
 
@@ -119,13 +133,18 @@ qsh@ghildes> xclock &
 qsh@ghildes> kill -9 31176
 [1]+  Killed                  xclock
 ```
+
 ```bash
 qsh@ghildes> xclock &
 [1] 32012
 qsh@ghildes> kill %1
 [1]+  Terminated              xclock
 ```
-## Reference  
+
+## Reference
+
+---
+
 [_ps(1) - Linux manual page_](http://man7.org/linux/man-pages/man1/ps.1.html)  
 [_top(1) - Linux manual page_](http://man7.org/linux/man-pages/man1/top.1.html)
 [_Manipulating processes in Linux_](http://www.physics.smu.edu/coan/linux/processes.html)  

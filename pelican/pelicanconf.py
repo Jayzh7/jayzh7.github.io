@@ -31,6 +31,8 @@ SOCIAL = (('FB', '#'),
           ('INS', '#'),)
 
 DEFAULT_PAGINATION = 10
+OUTPUT_PATH = '../'
 
+SUMMARY_MAX_LENGTH = 25
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True

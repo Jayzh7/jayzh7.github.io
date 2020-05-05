@@ -35,9 +35,8 @@
 <span>| tags: <a href="/tag/linux.html">Linux</a></span>
 </footer><!-- /.post-info -->      <!-- $$ \usepackage{amsmath} $$  -->
 
-<h2>Intro</h2>
-<p>In this blog, we will talk about process monitoring commands (<code>ps</code> and <code>top</code>) and process manipulation (kill, pause, suspend, etc.)  in Linux.</p>
-<h2>Process Monitoring</h2>
+<h2>1 Process Monitoring</h2>
+<hr>
 <h3>ps - process snapshot</h3>
 <p>To monitor the number of running processes on the machine the user is logged into, a general purpose process status command <code>ps</code> can be used. </p>
 <p>Formally speaking, </p>
@@ -97,8 +96,10 @@
 <h4>operation</h4>
 <p><code>top</code> command often produces a long output which usually streches out a window. To slide, motion keys (<code>up</code>, <code>down</code>, <code>left</code>, <code>right</code>), <code>PgUp</code>, <code>PgDn</code>, <code>Home</code>, <code>End</code> work as they usually do.</p>
 <h4>command line options</h4>
-<p>As always, you can rely on <code>-h</code> for help. Other useful options include:
-1. Exit after specific repetition. By default, it keeps refreshing until you press <code>q</code>.</p>
+<p>As always, you can rely on <code>-h</code> for help. Other useful options include:</p>
+<ol>
+<li>Exit after specific repetition. By default, it keeps refreshing until you press <code>q</code>.</li>
+</ol>
 <div class="highlight"><pre><span></span>    top -n <span class="m">10</span>
 </pre></div>
 
@@ -118,6 +119,7 @@
 <li>see <a href="http://man7.org/linux/man-pages/man1/top.1.html">manual</a> for more options and explanation of the summary info.  </li>
 </ol>
 <h2>Process manipulation</h2>
+<hr>
 <blockquote>
 <p>A process refers to a program in execution; it's a running instance of a program.
 Each process has its unique process ID (PID) and its parent process ID (PPID).</p>
@@ -174,6 +176,7 @@ qsh@ghildes&gt; <span class="nb">kill</span> %1
 
 
 <h2>Reference</h2>
+<hr>
 <p><a href="http://man7.org/linux/man-pages/man1/ps.1.html"><em>ps(1) - Linux manual page</em></a><br>
 <a href="http://man7.org/linux/man-pages/man1/top.1.html"><em>top(1) - Linux manual page</em></a>
 <a href="http://www.physics.smu.edu/coan/linux/processes.html"><em>Manipulating processes in Linux</em></a><br>

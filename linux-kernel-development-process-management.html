@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>Linux kernel development - Process Management</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/linux-kernel-development-process-management.html" rel="bookmark"
+           title="Permalink to Linux kernel development - Process Management">Linux kernel development - Process Management</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Sun 03 May 2020</span>
+
+</footer><!-- /.post-info -->      <h2>The process</h2>
+<hr>
+<p>A <em>process</em> is a program in the midst of execution. They are, however, more than just executing program code (<em>text</em> section in Unix). They also include a set of resources such as open files and pending signals, a memory address space, ...</p>
+<p>Threads of execution, aka <em>threads</em>, are obejcts of activity within the process. Each process has:</p>
+<ul>
+<li>unique program counter</li>
+<li>process stack</li>
+<li>set of processor registers.</li>
+</ul>
+<p>A process begin its life when it is created usually by a <code>fork()</code> system call which creates a new process by duplicating an existing one. The <em>parent</em> (process that calls <code>fork()</code>) resumes execution after <code>fork()</code> and the <em>child</em> (new process) starts execution at the same place where the call to <code>fork()</code> returns. The <code>fork()</code> returns from the kernel twice: once in the parent process and also in the newborn child.</p>
+<p>After a fork, a process is desirable to execute a new, different program. The <code>exec()</code> family of function calls create a new address space and loads a new program into it.</p>
+<p>Finally, a program exits via the <code>exit()</code> system call. This function terminates the process and free all its resources.</p>
+<blockquote>
+<p>Process is also called task from the kernel's point of view.</p>
+</blockquote>
+<h2>Process descriptor and task structure</h2>
+<hr>
+<p>The list of processes are stored in a circular doubly linked list called the <em>task list</em>. Each element in it is a <em>process descriptor</em> of type <code>struct task_struct</code>.</p>
+<h3>Allocating the process descriptor</h3>
+<p>The <code>task_struct</code> structure is allocated via the <em>slab allocator</em> to provide object reuse and cache coloring. It used to be stored at the end of kernel stack of each process and the location can be calculated via <em>stack pointer</em> so that no register is needed to store the location. Now, it is created dynamically and a new structure, <code>struct thread_info</code> lives at the bottom or top of the stack depending on how the stack grows. See figure 3.2. The <code>thread_info</code> contains a pointer to the <code>task_struct</code>.</p>
+<p><img alt="Process kernel stack" src="/images/figure3_2.png"><br>
+Figure 3.2 The process descriptor and kernel stack</p>
+<h3>Storing the process descriptor</h3>
+<p>Each process is identified by a unique <em>process identification</em> value or <em>PID</em> which is a numerical value represented by the opaque type <code>pid_t</code>. Due to backward compatibility, the default maximum is 32,768 (16 bit) which is enough for a desktop system but not for large servers. Moreover, the lower the value, the sooner the values will wrap around which destroy the useful notion that higher values indicate later-run processes. It can be modified via <code>/proc/sys/kernel/pid_max</code>.</p>
+<blockquote>
+<p>An opaque type is a data type whose physical representation is unknown or irrelevant.</p>
+</blockquote>
+<p>Inside the kernel, tasks (processes) are typically referenced directly by a pointer to their <code>task_struct</code> structure. In fact, most kernel code works directly with it. It is, therefore, useful to quickly look up the process descriptor of the currently executing task via the <code>current</code> macro. How this is done is architecture-dependent. Some save it in a register, some with few registers, on the other hand, look it up by the pointer stored in the <code>thread_info</code> as figure 3.2 shows.</p>
+<h3>Process State</h3>
+<p>Each process on the system is in exactly one of five states.</p>
+<ul>
+<li><code>TASK_RUNNING</code> - it is either currently running or on a running queue waiting to run. This is the only possible state for a process executing in user-space.</li>
+<li><code>TASK_INTERRUPTABLE</code> - it is sleeping (blocked), waiting for some condition to exist (resource, cpu). When the condition exists, the kernel sets its state to <code>TASK_RUNNING</code>.</li>
+<li><code>TASK_UNINTERRUPTABLE</code> - identical to <code>TASK_INTERRUPTABLE</code> except that it does not wake up and become runnable if it receives a signal. </li>
+<li><code>TASK_TRACED</code> - it is being <em>traced</em> by another process such as a debugger via <em>ptrace</em>.</li>
+<li><code>TASK_STOPPED</code> -  process execution has stopped; the task is not running nor is it eligible to run. It occurs after the task receives the <code>SIGSTOP</code>, <code>SIGTSTP</code>, <code>SIGTTIN</code>, or <code>SIGTTOU</code> or any signal while it is being debugged.</li>
+</ul>
+<p><img alt="Process kernel stack" src="/images/figure3_3.png"><br>
+Figure 3.3 Flowchart of process states.</p>
+<h3>Process context</h3>
+<p>When a program executes a system call or trigger an exception, it enters kernel-space. The kernel will be "executing on behalf of the process" and is in <em>process context</em> in which the <code>current</code> macro is still valid.</p>
+<h3>Process family tree</h3>
+<p>All processes are descendants of the <code>init</code> process whose PID is 1. The kernel starts <code>init</code> in the last step of the boot process. The <code>init</code> process reads the system <em>initscripts</em> and executes more program, eventually completing the boot process.</p>
+<p>Every process has only one parent, 0 or more children. Each <code>task_struct</code> has a pointer to the parent's <code>task_struct</code> named <code>parent</code>, and a list of children named <code>children</code>. Process iteration can be done using macros like <code>for_each_process()</code> which iterates over the entire task list.</p>
+<h2>Process creation</h2>
+<hr>
+<p>Unix takes the unusual approach of creating processes in two steps: <code>fork()</code> and <code>exec()</code>. </p>
+<p><code>fork()</code> creates a child process that is a copy of the current task. It differs from its parent in its PID, PPID, certain resources and statistics such as pending signals.</p>
+<p><code>exec()</code> loads a new executable into the address space and begins executing it.</p>
+<h3>Copy-on-write</h3>
+<p>Traditionally, upon <code>fork()</code>, all resources owned by the parent are duplicated and the copy is given to the child which is inefficient due to too much (mostly unnecessary) copy. Copy-on-write (COW) is a technique to delay or even prevent copying of the data. Instead, the parent and child can share a single copy if it is only read by the child. When it is written to by the child, a duplicate will be made and the child receives a unique copy.</p>
+<p>In the common case that a process executes a new executable immediately after forking, the technique prevents the copying and speed up the process creation and execution.</p>
+<h3>forking</h3>
+<p>Linux implements <code>fork</code> via the <code>clone()</code> system call. This call takes a series of flags (introduced later this chapter). The <code>clone()</code>, in turn, calls <code>do_fork()</code>. The bulk of the work in forking is handled by <code>do_fork()</code> which is defined in <strong><code>kernel/fork.c</code></strong>. This function calls <code>copy_process()</code> and then starts process running. Interesting work done by <code>copy_process()</code>:</p>
+<p>0, check if the parameters passed in are valid, exit otherwise.
+1, it calls <code>dup_task_struct()</code>, which creates a new kernel stack, <code>thread_info</code> structure, and <code>task_struct</code> for the new process. The new values are identical to those of the current task.<br>
+2, check resources limits<br>
+3, members of the process descriptor are cleared or set to initial values.<br>
+4, state set to <code>TASK_UNINTERRUPTIBLE</code> to ensure that it does not run.<br>
+5, it calls <code>copy_flags()</code> to update flags.<br>
+6, it calls <code>alloc_pid()</code> to assign an available PID to the new task.<br>
+7,  depending on the flags passed to <code>clone()</code>, it either duplicates or shares resources like signal handler, process address space, and namespace.<br>
+8, cleans up and return a pointer to the new child.</p>
+<h3><code>vfork()</code></h3>
+<p>The <code>vfork()</code> system call has the same effect as <code>fork()</code> except that <strong>the page table entries of the parent are not copied</strong>. Instead, the child executes as the sole thread in the parent's address space and the parent is blocked until the child calls <code>exec()</code> or exits. It used to offers more optimization when the COW was not used in <code>fork()</code>. </p>
+<h2>The Linux implementation of threads</h2>
+<hr>
+<p>Threads within the same program share memory address space, open files and other resources. They enable <em>concurrent programming</em> and true <em>parallelism</em> on multiple processor systems.</p>
+<p>Linux implements are threads as standard process. A thread is merely a process that shares certain resources with other processes. To some other OS like Microsoft Windows, threads are an abstraction to provide a ligher, quicker execution unit.</p>
+<h3>Creating threads</h3>
+<p>Specific flags indicating shared resources will be passed into the <code>clone()</code> system call when creating threads.</p>
+<div class="highlight"><pre><span></span><span class="n">clone</span><span class="p">(</span><span class="n">CLONE_VM</span> <span class="o">|</span> <span class="n">CLONE_FS</span> <span class="o">|</span> <span class="n">CLONE_FILES</span> <span class="o">|</span> <span class="n">CLONE_SIGHAND</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</pre></div>
+
+
+<p>It means shared address space, filesystem resources, file descriptors, and signal handlers.</p>
+<p>In contrast, a normal process <code>fork()</code> will be</p>
+<div class="highlight"><pre><span></span><span class="n">clone</span><span class="p">(</span><span class="n">SIGCHLD</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</pre></div>
+
+
+<p>and <code>vfork()</code> will be</p>
+<div class="highlight"><pre><span></span><span class="n">clone</span><span class="p">(</span><span class="n">CLONE_VFORK</span> <span class="o">|</span> <span class="n">CLONE_VM</span> <span class="o">|</span> <span class="n">SIGCHLD</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</pre></div>
+
+
+<p>More <code>clone()</code> related flags are defined in <code>&lt;linux/sched.h&gt;</code>.</p>
+<h3>Kernel threads</h3>
+<p>Kernel also performs some operations in the background which is done via <em>kernel threads</em> - standard processes that exist solely in kernel-space. <strong>Kernel threads do not have an address space.</strong> Their <code>mm</code> pointer is <code>NULL</code>.</p>
+<p>What do kernel threads do? Mostly notably the <em>flush</em> tasks and <em>ksoftirqd</em> task. More details to be followed later.</p>
+<h2>Process termination</h2>
+<hr>
+<p>The process termination occurs when the process calls the <code>exit()</code> system call, either explicitly when it is ready to terminate or implicitly on return from the main subroutine (C compiler places a call to <code>exit()</code> after <code>main()</code> returns). A process can also terminate involuntarily when it receives a signal or exception it cannot handle or ignore. Regardless, the work is done by <code>do_exit()</code> defined in <code>kernel/exit.c</code>.</p>
+<p>1, it sets the <code>PF_EXITING</code> flag in the <code>flags</code> memeber of the <code>task_struct</code>.<br>
+2, it calls <code>del_timer_sync()</code> to remove any kernel timers. -- note: not found in the source code of 5.6.8
+3, it calls <code>acct_update_integrals()</code> to write out accounting information.<br>
+4, it calls <code>exit_mm()</code> to release the <code>mm_struct</code> held by this process. If the address space is not shared, the kernel then destroys it.<br>
+5, it calls <code>exit_sem()</code> (also <code>exit_shm</code> shared memory?). If the process is queued waiting for an IPC semaphore, it is dequeued here.<br>
+6, it calls <code>exit_files()</code> and <code>exit_fs()</code> to decrement the usage count of objects related to file descriptors and filesystem data. If either usage counts reach 0, the object is destroyed.<br>
+7, it sets the tasks's exit code inside the <code>task_struct</code> to the code passed into the <code>exit()</code> -- note: it is before step 4 in 5.6.8.<br>
+8, it calls <code>exit_notify()</code> to send signals to the task's parent, reparents any of the task's children to another thread in their thread group or the init process and sets the task's exit state to <code>EXIT_ZOMBIE</code>.<br>
+9, it calls <code>schedule()</code> to switch to a new process. Because the process is not schedulable anymore, this is the last code the task will ever execute. <code>do_exit()</code> never returns. --note: the last line of code of <code>do_exit()</code> is actually <code>do_task_dead()</code> in which the <code>__schedule()</code> is called. A <code>BUG();</code> follows the <code>__schedule(false);</code>.  </p>
+<blockquote>
+<p>side note: the unlikely macros that appear frequently in the source code are hint to compiler that the branch is not likely to be taken so that a lot misprediction as well as the flush can be avoided.</p>
+</blockquote>
+<h3>Removing the process descriptor</h3>
+<p>So far, all objects owned solely by the task were freed. The task is not runnable and is in the <code>EXIT_ZOMBIE</code> state. The only memory it occupies is its kernel stack, the <code>thread_info</code> and <code>task_struct</code>. After its parent or the kernel is notified, the remaining memroy will be freed and returned to the system by <code>release_task()</code> defined in <code>kernel/exit.c</code> which does the following:</p>
+<p>1, it calls <code>__exit_signal()</code>, which calls <code>__unhash_process()</code>, which in turn calls <code>detach_pid()</code> to remove the process from the pidhash and remove the process from the task list.<br>
+2, <code>__exit_signal()</code> releases any remaining resources used by the process and finalize statistics and bookkeeping.<br>
+3, if the task was the last member of a thread group, and the leader is a zombie, then the zombie leader's parent will be notified.<br>
+4, <code>release_task()</code> calls <code>put_task_struct()</code> to free pages containing the process's kernel stack and <code>thread_info</code>, and deallocate the slab cache containing the <code>task_struct</code>.  </p>
+<h3>The dilemma of the parentless task</h3>
+<p>If a parent exits before its children, some mechanism must exist to <em>reparent</em> any child tasks to a new process, otherwise parentless terminated processes would forever remain zombies.</p>
+<p>The solution is to reparent a task's children on exit:</p>
+<p>1 another process in the current thread group<br>
+2 the first ancestor process which prctl'd itself as a child_subreaper for its children (like a service manager).<br>
+3 the <code>init</code> process in our pid namespace.  </p>
+<p>This is done in the <code>find_new_reaper()</code> (trace stack: <code>forget_original_parent()</code> &lt;- <code>exit_notify()</code> &lt;- <code>do_exit()</code>)</p>
+<blockquote>
+<p>side note: some macros like RCU_INIT_POINTER are defined in a construct like <code>do {} while (0)</code> for several reasons: 1, it can include multiple statements; 2, it can be followed by a semicolon; 3 it can be used within an <code>if</code> statement.</p>
+</blockquote>
+<p>(This paragraph is kinda confusing)<br>
+The rational behind having both a child list and a ptraced list: when a task's parent exits, it must be reparented along with its siblings. In early version kernels, this is done by a loop over <em>every</em> process in the system to look for children. By adding a ptraced list, a list of a process's children is kept to avoid the wild search.</p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>

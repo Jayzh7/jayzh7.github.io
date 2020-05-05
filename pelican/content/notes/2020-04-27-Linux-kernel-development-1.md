@@ -6,7 +6,9 @@ visible: True
 tag: Linux, Linux kernel
 --- 
 
-## Overview of OS and Kernels
+## 1 Overview of OS and Kernels
+
+---
 
 ### OS components
 
@@ -46,7 +48,9 @@ In Linux, we can generalize that each processor is doing exactly one of the thre
 ![Process state]({static}/images/figure1_1.png)  
 Figure 1.1 Relationship between applications, the kernel, and hardware.
 
-## Linux Versus Classic Unix Kernels
+## 2 Linux Versus Classic Unix Kernels
+
+---
 
 Common ancestry and same API, modern Unix kernels share various design traits. A Unix kernel is typically a monolithic (means single and large) static binary that runs in a single address space. Unix systems usually have a paged memory-management unit (MMU). Most Linux kernels also have it while some small embedded systems can also run without one.
 
@@ -69,7 +73,9 @@ Notable difference between Linux kernel and classic Unix kernel:
 + Linux does not differentiate between threads and normal processes. All processes are same while some (threads) happen to share resources. 
 + Linux provides object-oriented device model with device classes, hot-pluggable events, a user-space device filesystem(sysfs).
 
-## Linux version
+## 3 Linux version
+
+---
 
 3 digits: major release, minor release, revision  
 4 digits: 3 digits + stable version
