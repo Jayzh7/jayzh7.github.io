@@ -35,7 +35,7 @@ The list of processes are stored in a circular doubly linked list called the _ta
 
 The `task_struct` structure is allocated via the _slab allocator_ to provide object reuse and cache coloring. It used to be stored at the end of kernel stack of each process and the location can be calculated via _stack pointer_ so that no register is needed to store the location. Now, it is created dynamically and a new structure, `struct thread_info` lives at the bottom or top of the stack depending on how the stack grows. See figure 3.2. The `thread_info` contains a pointer to the `task_struct`.
 
-![Process kernel stack]({static}/images/figure3_2.PNG)  
+![Process kernel stack]({static}/images/figure3_2.png)  
 Figure 3.2 The process descriptor and kernel stack
 
 ### Storing the process descriptor
@@ -56,7 +56,7 @@ Each process on the system is in exactly one of five states.
 + `TASK_TRACED` - it is being _traced_ by another process such as a debugger via _ptrace_.
 + `TASK_STOPPED` -  process execution has stopped; the task is not running nor is it eligible to run. It occurs after the task receives the `SIGSTOP`, `SIGTSTP`, `SIGTTIN`, or `SIGTTOU` or any signal while it is being debugged.
 
-![Process kernel stack]({static}/images/figure3_3.png)  
+![Process states]({static}/images/figure3_3.png)  
 Figure 3.3 Flowchart of process states.
 
 ### Process context
