@@ -4,7 +4,7 @@ date: 2020-05-03 16:02
 summary: Process and its related concepts like threads, how the Linux kernel manages each process - how they are enumerated within the kernel, how they are created ...
 category: notes
 visible: True
-tag: Linux, Linux kernel
+tags: Linux, Linux kernel
 --- 
 
 ## The process
