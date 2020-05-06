@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>VGG and hourglass</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/vgg-and-hourglass.html" rel="bookmark"
+           title="Permalink to VGG and hourglass">VGG and hourglass</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Wed 06 May 2020</span>
+<span>| tags: <a href="/tag/ml.html">ML</a></span>
+</footer><!-- /.post-info -->      <h2>VGGNet</h2>
+<hr>
+<p>VGG16 is a convolutional neural network model proposed by researchers from University of Oxford in the paper “Very Deep Convolutional Networks for Large-Scale Image Recognition” in 201. It was ranked 2nd in classification. 1st in localization in ILSVRC'14.</p>
+<p><img alt="VGG architecture" src="https://neurohive.io/wp-content/uploads/2018/11/vgg16-1-e1542731207177.png"> <!--({static}/images/vgg16-1.png)  -->
+figure 1: VGG architecture. Image credit: <a href="https://neurohive.io/en/popular-networks/vgg16/">Neurohive</a></p>
+<h3>Characteristics</h3>
+<ul>
+<li>
+<p>small filters, deeper networks at that time (jumped from 8 layer to 19).</p>
+</li>
+<li>
+<p>only 3x3 conv stride 1, pad 1, and 2x2 max pooling stide 2.</p>
+</li>
+</ul>
+<p>&nbsp;&nbsp;why smaller filters?</p>
+<blockquote>
+<ul>
+<li>stack of small filters can have the same effect as one large filter. For example, 3 layers of 3x3 conv with stride 1 and pad 1 is the same as a layer of 7x7.  </li>
+<li>deeper, more non-linearities  </li>
+<li>fewer parameters  </li>
+</ul>
+</blockquote>
+<h3>Drawbacks</h3>
+<ul>
+<li>painfully slow to train (depth leads to more parameters)</li>
+<li>high memory usage (the number of channels goes up a lot in the feedforward process)</li>
+</ul>
+<h2>Hourglass</h2>
+<hr>
+<p>The Hourglass is also a convolutional network architecture originally proposed for human pose estimation by researcher from UMich in <a href="https://arxiv.org/pdf/1603.06937.pdf"><em>Stacked Hourglass Networks for Human Pose Estimation</em></a>.</p>
+<p><img alt="Hourglass architecture" src="/images/hourglass.png"><br>
+figure 2: a single "hourglass" module. Each box in the figure corresponds to a residual module</p>
+<h3>Characteristics</h3>
+<p>The hourglass has a symmetric distribution of capacity between its bottom-up processing and top-down processing which is kind of a conv-deconv and encoder-decoder architecture.</p>
+<p>It does not use unpooling or deconv layers for top-down processing. Instead, it uses simple nearest neighbor upsampling and skip connections for top-down processing.</p>
+<p>It does repeated bottom-up, top-down inference by stacking multiple hourglasses.</p>
+<h2>Reference</h2>
+<p><a href="https://neurohive.io/en/popular-networks/vgg16/"><em>VGG16 – Convolutional Network for Classification and Detection</em></a><br>
+<a href="https://cs231n.github.io/"><em>CS231n: Convolutional Neural Networks for Visual Recognition</em></a></p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>

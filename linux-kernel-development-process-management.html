@@ -32,7 +32,7 @@
     <div class="entry-content">
 <footer class="post-info">
         <span>Sun 03 May 2020</span>
-
+<span>| tags: <a href="/tag/linux.html">Linux</a><a href="/tag/linux-kernel.html">Linux kernel</a></span>
 </footer><!-- /.post-info -->      <h2>The process</h2>
 <hr>
 <p>A <em>process</em> is a program in the midst of execution. They are, however, more than just executing program code (<em>text</em> section in Unix). They also include a set of resources such as open files and pending signals, a memory address space, ...</p>
@@ -53,7 +53,7 @@
 <p>The list of processes are stored in a circular doubly linked list called the <em>task list</em>. Each element in it is a <em>process descriptor</em> of type <code>struct task_struct</code>.</p>
 <h3>Allocating the process descriptor</h3>
 <p>The <code>task_struct</code> structure is allocated via the <em>slab allocator</em> to provide object reuse and cache coloring. It used to be stored at the end of kernel stack of each process and the location can be calculated via <em>stack pointer</em> so that no register is needed to store the location. Now, it is created dynamically and a new structure, <code>struct thread_info</code> lives at the bottom or top of the stack depending on how the stack grows. See figure 3.2. The <code>thread_info</code> contains a pointer to the <code>task_struct</code>.</p>
-<p><img alt="Process kernel stack" src="/images/figure3_2.png"><br>
+<p><img alt="Process kernel stack" src="https://raw.githubusercontent.com/Jayzh7/jayzh7.github.io/master/pelican/content/images/figure3_2.PNG"><br>
 Figure 3.2 The process descriptor and kernel stack</p>
 <h3>Storing the process descriptor</h3>
 <p>Each process is identified by a unique <em>process identification</em> value or <em>PID</em> which is a numerical value represented by the opaque type <code>pid_t</code>. Due to backward compatibility, the default maximum is 32,768 (16 bit) which is enough for a desktop system but not for large servers. Moreover, the lower the value, the sooner the values will wrap around which destroy the useful notion that higher values indicate later-run processes. It can be modified via <code>/proc/sys/kernel/pid_max</code>.</p>
