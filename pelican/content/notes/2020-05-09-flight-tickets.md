@@ -1,10 +1,9 @@
 ---
-title: Editor-vim (notes of a MIT lecture)
+title: flight to home
 date: 2020-05-09 22:30
-summary: about vim
+summary: flight ticket information gathered manually
 category: notes
 visible: True
-tags: Other
 ---
 
 ## Ticket price (updated 5/10)

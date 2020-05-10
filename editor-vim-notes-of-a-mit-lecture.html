@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>Editor-vim (notes of a MIT lecture)</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/editor-vim-notes-of-a-mit-lecture.html" rel="bookmark"
+           title="Permalink to Editor-vim (notes of a MIT lecture)">Editor-vim (notes of a MIT lecture)</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Sat 09 May 2020</span>
+<span>| tags: <a href="/tag/linux.html">Linux</a></span>
+</footer><!-- /.post-info -->      <h2>Philosophy of Vim</h2>
+<p>Vim is a modal editor: it has different modes for inserting text and manipulating text. Vim avoids the use of mouse because it's too slow; Vim even avoids using the arrow keys because it requires too much movement.</p>
+<p>The end result is an editor that can match the speed at which you think.</p>
+<h2>Modal editing</h2>
+<p>Vim's design is based on the idea that programmers spend time on not only writing, but also reading, navigating, and modifying. This leads to its multiple modes:</p>
+<table>
+<thead>
+<tr>
+<th>mode</th>
+<th>key to enter</th>
+<th>functions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>normal</strong></td>
+<td><code>Esc</code></td>
+<td>for moving around a file and making edits</td>
+</tr>
+<tr>
+<td><strong>insert</strong></td>
+<td><code>i</code></td>
+<td>for inserting text</td>
+</tr>
+<tr>
+<td><strong>replace</strong></td>
+<td><code>R</code></td>
+<td>for replacing text</td>
+</tr>
+<tr>
+<td><strong>visual</strong></td>
+<td><code>V</code></td>
+<td>for selecting blocks of text</td>
+</tr>
+<tr>
+<td><strong>command-line</strong></td>
+<td><code>Ctrl+v</code></td>
+<td>for running a command</td>
+</tr>
+</tbody>
+</table>
+<h2>Vim's interface is a programming language</h2>
+<hr>
+<p>Key strokes are commands. And these commands <strong>compose</strong>. This enables efficient movement and edits.</p>
+<h3>Movement</h3>
+<p>Movements in Vim are also called "nouns", because they refer to chunks of text.</p>
+<ul>
+<li>basic movement: <code>hjkl</code> (left, down, up, right)</li>
+<li>words: <code>w</code> (next word), <code>b</code> (beginning of word), <code>e</code> (end of word)</li>
+<li>lines: <code>0</code> (beginning of line), <code>^</code> (first non-blank character), <code>$</code> (end of line)</li>
+<li>screen: <code>H</code> (top of screen), <code>M</code> (middle of screen), <code>L</code> (bottom of screen)</li>
+<li>scroll: <code>Ctrl-u</code> (up), <code>Ctrl-d</code> (down)</li>
+<li>file: <code>gg</code> (beginning of file), <code>G</code> (end of file)</li>
+<li>Line numbers: <code>:{number}</code> or <code>{number}G</code></li>
+<li>find: <code>f{ch}</code>, <code>t{ch}</code>, <code>F{ch}</code>, <code>T{ch}</code><br>
+find/to forward/backward {ch} on the current line<br>
+<code>,</code> and <code>;</code> for navigating matches forward and backward</li>
+<li>search: <code>/{regex}</code>, <code>n</code> or <code>N</code> for navigating matches</li>
+</ul>
+<h3>Selection</h3>
+<p>Visual modes:</p>
+<ul>
+<li>Visual</li>
+<li>Visual line</li>
+<li>Visual block</li>
+</ul>
+<p>combine with movement to make selection</p>
+<h3>Edits</h3>
+<ul>
+<li>append: <code>a</code></li>
+<li>insert: <code>i</code> add something</li>
+<li>insert new line below/above: <code>o</code>/<code>O</code></li>
+<li>delete {motion}: <code>d{motion}</code>, e.g. <code>dw</code> delete word, <code>d$</code> delete to end of line<br>
+<code>d0</code> delete to beginning of line, <code>dd</code> delete line</li>
+<li>change(replace) {motion}: <code>c{motion}</code>, like delete</li>
+<li>delete character: <code>x</code>, equal to <code>dl</code></li>
+<li>delete until end of line and insert: <code>C</code></li>
+<li>visual mode + manipulation<br>
+select text, <code>d</code>/<code>x</code> to delete, <code>y</code> to yank, or <code>s</code> to replace (equal to <code>di</code>)</li>
+<li>undo and redo: <code>u</code>, <code>Ctrl+r</code></li>
+<li>cut, yank(copy), paste: <code>d</code>, <code>y</code>, <code>p</code></li>
+<li>...</li>
+</ul>
+<h3>Counts</h3>
+<p>Combine nouns and verbs with a count, which will perform a given action a number of times.</p>
+<ul>
+<li><code>3w</code> move 3 words forward</li>
+<li><code>5j</code> move 5 lines down</li>
+<li><code>7dw</code> delete 7 words</li>
+</ul>
+<h3>Modifiers</h3>
+<ul>
+<li><code>ci(</code> changes the contents inside the current pair of parentheses</li>
+<li><code>ci[</code> changes the contents inside the current pair of square brackets</li>
+<li><code>da'</code> deletes a single quoted string, including the surrounding single quotes</li>
+</ul>
+<h3>A lot more to learn</h3>
+<h2>Reference</h2>
+<p><a href="https://missing.csail.mit.edu/2020/editors/"><em>Editors (Vim)</em></a><br>
+<a href="https://devhints.io/vim"><em>Vim cheatsheet</em></a></p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>

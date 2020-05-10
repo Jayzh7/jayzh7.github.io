@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>Linux kernel development - Process scheduling</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/linux-kernel-development-process-scheduling.html" rel="bookmark"
+           title="Permalink to Linux kernel development - Process scheduling">Linux kernel development - Process scheduling</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Wed 06 May 2020</span>
+<span>| tags: <a href="/tag/linux.html">Linux</a><a href="/tag/linux-kernel.html">Linux kernel</a></span>
+</footer><!-- /.post-info -->      <p>The process scheduler aims to best utilize processor time. Deciding which process(es) to run next, given a list of runnable processes, is the fundamental decision that the scheduler must take.</p>
+<h2>Multitasking</h2>
+<p>There are two type of multitasking operating systems: <em>cooperative multitasking</em> and <em>preemptive multitasking</em>.</p>
+<p>Linux, like all Unix variants and most modern OSs, implements preemptive multitasking. In preemptive multitasking, the scheduler decides when a process is to cease running and a new process to begin running. The act of involuntary suspending a running process is called <em>preemption</em>. The time that a process runs before it is preempted is predetermined and is called the <em>timeslice</em> of the process. The timeslice is dynamically calculated as a function of process behavior and system policy.</p>
+<h2>(History of) Linux's process scheduler</h2>
+<p>From Linux's first version in 1991 to the 2.4 kernel series, the Linux scheduler was simple in design but scaled poorly in light of many runnable processes or many processors.</p>
+<p>In response, Linux received a new schedular in the 2.5 kernel series. It scaled effortlessly as Linux supported large "iron" with tens if not hundreds of processors. However, it had several pathological failures related to latency-sensitive applications (e.g., interactive processes).</p>
+<p>In 2.6 kernel series, the <em>Rotating Staircase Deadline</em> scheduler was introduced. It introduced the concept of <em>fair scheduling</em>, borrowed from queuing theory. It inspired the eventual replacement in kernel version 2.6.23, the <em>Completely Fair Scheduler</em>, or <em>CFS</em>.</p>
+<h2>Policy</h2>
+<h3>I/O-bound versus Porcessor-bound processes</h3>
+<p>Processes can be classified as:</p>
+<ul>
+<li><em>I/O-bound</em> that spends much of its time submitting and waiting on I/O requests.</li>
+<li><em>processor-bound</em> that spend much of its time executing code</li>
+</ul>
+<p>These classifications are not mutually exclusive. Processes can exhibit both behaviors simultaneously.</p>
+<p>There are two conflicting goals for the scheduling policy to satisfy:</p>
+<ul>
+<li>low latency</li>
+<li>high throughput</li>
+</ul>
+<h3>Process priority</h3>
+<p>Linux kernel implements two separate priority ranges:</p>
+<ul>
+<li><em>nice</em> value, from -20 to +19 with a default of 0. Higher value corresponds to lower priority - you are being "nice" to other processes. (use command <code>ps -el</code>, they are under column <em>NI</em>)</li>
+<li><em>real-time priority</em>, configurable, by default range from 0 to 99. Higher values corresponds to greater priority. All real-time processes are at a higher priority than normal processes. (use <code>ps -eo state,uid,pid,ppid,rtprio,time,comm</code>, they are under column <em>RTPRIO</em>)</li>
+</ul>
+<h3>Timeslice</h3>
+<p>The timeslice is the numeric value represents how long a task can run until it is preempted.</p>
+<p>timeslice too low -&gt; high overhead switching tasks<br>
+timeslice too long-&gt; high latency</p>
+<p>The default timeslice for many OSs is rather low - 10 ms for the sake of better interactive experience. Linux's CFS scheduler, however, does not assign timeslices to processes. Instead, it assigns processes a proportion of the processor. So the timeslice of a process is determined by:</p>
+<ul>
+<li>the load of the system</li>
+<li>nice value of the process</li>
+</ul>
+<p>When can the newly runnable process preempt the running process:</p>
+<ul>
+<li>it has consumed a smaller proportion of the processor than the running process</li>
+</ul>
+<h3>The scheduling policy in action</h3>
+<p>Consider a system with 2 runnable processes: a video encoder and a text editor.</p>
+<p>To achieve the following goals for the text editor for good interactive experience:</p>
+<ul>
+<li>large amount of processor time</li>
+<li>ability to preempt the encoder</li>
+</ul>
+<p>what will OSs do?</p>
+<ul>
+<li>most OSs: the text editor will be given a higher priority and larger timeslice</li>
+<li>advanced OSs: same but it detects interactive processes and do it automatically</li>
+<li>Linux: because the text editor is blocked most of the time, its consumed timeslice is low. Thus, it is more likely to preempt the video encoder even if they are at the same nice level.</li>
+</ul>
+<h2>The Linux scheduling algorithm</h2>
+<hr>
+<h3>Scheduler classes</h3>
+<p>The Linux scheduler is modular, enabling different algorithms to schedule different types of processes. This modularity is called <em>scheduler classes</em>. Each scheduler class has a priority. The base scheduler which is defined in <code>kernel/sched.c</code> iterates all scheduler class in order of priority. Who runs next will be decided by  <strong>the highest priority scheduler class with a runnable process</strong>.</p>
+<h3>Process scheduling in Unix systems</h3>
+<p>The CFS is for normal processes, called <code>SCHED_NORMAL</code> in Linux. As aforementioned, timeslices are absolute value determined by nice values. This leads to suboptimal switching behavior:</p>
+<ul>
+<li>thread A with nice value +20 (lowest priority), thread B with high priority will be assigned 5ms (1/21), 100ms (20/21) processor time respectively.  </li>
+<li>thread A and B both with nice values +20, both will be assigned 5ms which leads to a intensive context switch.</li>
+</ul>
+<p>A second problem concerns relative nice values and the nice value to timeslice mapping.</p>
+<table>
+<thead>
+<tr>
+<th>nice value</th>
+<th align="center">timeslice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td align="center">100</td>
+</tr>
+<tr>
+<td>1</td>
+<td align="center">95</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>nice value</th>
+<th align="center">timeslice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>18</td>
+<td align="center">10</td>
+</tr>
+<tr>
+<td>19</td>
+<td align="center">5</td>
+</tr>
+</tbody>
+</table>
+<h3>Fair scheduling</h3>
+<p>Some concepts:  </p>
+<blockquote>
+<p><em>timeslice</em>： proportional to its weight divided by the total weight of all runnable threads.<br>
+<em>targeted latency</em>: the approximation of the "infinitely small" scheduling duration for the actual timeslice calculation.<br>
+<em>minimum granularity</em>: the floor of <em>targeted latency</em>, by default 1ms.  </p>
+</blockquote>
+<p>The proportion of processor time that any process receives is determined only by the relative different in niceness. <strong>CFS</strong> is called a <em>fair scheduler</em> because it gives each process a fair share. But it is still not prefectly fair when the number of tasks is too high that the <em>minimum granularity</em> is reached. The lower bound for unfairness is O(n).</p>
+<h2>The Linux scheduling implementation</h2>
+<hr>
+<p>This part will be about CFS's actual implementation, which lives in <code>kernel/sched_fair.c</code>. Specifically, four components of CFS:</p>
+<ul>
+<li>Time accounting</li>
+<li>Process selection</li>
+<li>The scheduler entry point</li>
+<li>Sleeping and waking up</li>
+</ul>
+<h3>Time accounting</h3>
+<p>All process scheduler must account for the time that a process runs.</p>
+<h4>The scheduler entity structure</h4>
+<div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">sched_entity</span> <span class="p">{</span>
+    <span class="cm">/* For load-balancing: */</span>
+    <span class="k">struct</span> <span class="n">load_weight</span>      <span class="n">load</span><span class="p">;</span>
+    <span class="kt">unsigned</span> <span class="kt">long</span>           <span class="n">runnable_weight</span><span class="p">;</span>
+    <span class="k">struct</span> <span class="n">rb_node</span>          <span class="n">run_node</span><span class="p">;</span>
+    <span class="k">struct</span> <span class="n">list_head</span>        <span class="n">group_node</span><span class="p">;</span>
+    <span class="kt">unsigned</span> <span class="kt">int</span>            <span class="n">on_rq</span><span class="p">;</span>
+
+    <span class="n">u64</span>             <span class="n">exec_start</span><span class="p">;</span>
+    <span class="n">u64</span>             <span class="n">sum_exec_runtime</span><span class="p">;</span>
+    <span class="n">u64</span>             <span class="n">vruntime</span><span class="p">;</span>
+    <span class="n">u64</span>             <span class="n">prev_sum_exec_runtime</span><span class="p">;</span>
+
+    <span class="n">u64</span>             <span class="n">nr_migrations</span><span class="p">;</span>
+
+    <span class="k">struct</span> <span class="n">sched_statistics</span>     <span class="n">statistics</span><span class="p">;</span>
+    <span class="c1">// ...</span>
+    <span class="c1">// More config specific variables </span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>CFS keeps the account for the time that each process runs in a <em>scheduler entity structure</em>, <code>struct sched_entity</code>, defined in <code>&lt;linux/sched.h&gt;</code>. This structure is embedded in the <em>process descriptor</em>, <code>struct task_struct</code> as a member named <code>se</code>.</p>
+<h4>The virtual runtime</h4>
+<p>The <code>vruntime</code> variable stores the <code>virtual runtime</code> of a process which is the actual runtime normalized by the number of runnable processes. CFS uses it to account for hong long it has run and how much longer it ought to run.</p>
+<p>The function <code>update_curr()</code>, defined in <code>kernel/sched/fair.c</code>, manages the accounting:</p>
+<div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm"> * Update the current task&#39;s runtime statistics.</span>
+<span class="cm"> */</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">update_curr</span><span class="p">(</span><span class="k">struct</span> <span class="n">cfs_rq</span> <span class="o">*</span><span class="n">cfs_rq</span><span class="p">)</span>  
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="n">sched_entity</span> <span class="o">*</span><span class="n">curr</span> <span class="o">=</span> <span class="n">cfs_rq</span><span class="o">-&gt;</span><span class="n">curr</span><span class="p">;</span>   <span class="c1">// curr points to the current running entity on this runqueue</span>
+    <span class="n">u64</span> <span class="n">now</span> <span class="o">=</span> <span class="n">rq_clock_task</span><span class="p">(</span><span class="n">rq_of</span><span class="p">(</span><span class="n">cfs_rq</span><span class="p">));</span>     <span class="c1">// get the CPU runqueue to which this cfs_rq is attached and </span>
+                                                <span class="c1">// get its clock as now</span>
+    <span class="n">u64</span> <span class="n">delta_exec</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="o">!</span><span class="n">curr</span><span class="p">))</span>
+        <span class="k">return</span><span class="p">;</span>
+
+    <span class="n">delta_exec</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="n">curr</span><span class="o">-&gt;</span><span class="n">exec_start</span><span class="p">;</span>        <span class="c1">// calculate the execution time of the current process</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">((</span><span class="n">s64</span><span class="p">)</span><span class="n">delta_exec</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">return</span><span class="p">;</span>
+
+    <span class="n">curr</span><span class="o">-&gt;</span><span class="n">exec_start</span> <span class="o">=</span> <span class="n">now</span><span class="p">;</span>
+
+    <span class="n">schedstat_set</span><span class="p">(</span><span class="n">curr</span><span class="o">-&gt;</span><span class="n">statistics</span><span class="p">.</span><span class="n">exec_max</span><span class="p">,</span>    <span class="c1">// update maximum execution time</span>
+              <span class="n">max</span><span class="p">(</span><span class="n">delta_exec</span><span class="p">,</span> <span class="n">curr</span><span class="o">-&gt;</span><span class="n">statistics</span><span class="p">.</span><span class="n">exec_max</span><span class="p">));</span>
+
+    <span class="n">curr</span><span class="o">-&gt;</span><span class="n">sum_exec_runtime</span> <span class="o">+=</span> <span class="n">delta_exec</span><span class="p">;</span>       <span class="c1">// update total execution time</span>
+    <span class="n">schedstat_add</span><span class="p">(</span><span class="n">cfs_rq</span><span class="o">-&gt;</span><span class="n">exec_clock</span><span class="p">,</span> <span class="n">delta_exec</span><span class="p">);</span>
+                                                <span class="c1">// update vruntime with weighted execution time</span>
+    <span class="n">curr</span><span class="o">-&gt;</span><span class="n">vruntime</span> <span class="o">+=</span> <span class="n">calc_delta_fair</span><span class="p">(</span><span class="n">delta_exec</span><span class="p">,</span> <span class="n">curr</span><span class="p">);</span>
+    <span class="n">update_min_vruntime</span><span class="p">(</span><span class="n">cfs_rq</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">entity_is_task</span><span class="p">(</span><span class="n">curr</span><span class="p">))</span> <span class="p">{</span>                 <span class="c1">// an entity is task if it doesn&#39;t &quot;own&quot; a runqueue</span>
+        <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span><span class="n">curtask</span> <span class="o">=</span> <span class="n">task_of</span><span class="p">(</span><span class="n">curr</span><span class="p">);</span>
+
+        <span class="n">trace_sched_stat_runtime</span><span class="p">(</span><span class="n">curtask</span><span class="p">,</span> <span class="n">delta_exec</span><span class="p">,</span> <span class="n">curr</span><span class="o">-&gt;</span><span class="n">vruntime</span><span class="p">);</span>
+        <span class="n">cgroup_account_cputime</span><span class="p">(</span><span class="n">curtask</span><span class="p">,</span> <span class="n">delta_exec</span><span class="p">);</span>
+        <span class="n">account_group_exec_runtime</span><span class="p">(</span><span class="n">curtask</span><span class="p">,</span> <span class="n">delta_exec</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="n">account_cfs_rq_runtime</span><span class="p">(</span><span class="n">cfs_rq</span><span class="p">,</span> <span class="n">delta_exec</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>A few related structures:</p>
+<ul>
+<li><code>struct rq</code>： main, per-CPU runqueue data structure.</li>
+<li><code>struct cfs_rq</code>: CFS-related fields in a runqueue. It contains a pointer to the CPU runqueue to which it is attached.</li>
+</ul>
+<p><code>update_curr()</code> is invoked periodically by:</p>
+<ul>
+<li>the system timer </li>
+<li>whenever a process becomes runnable or blocks, becoming unrunnable.</li>
+</ul>
+<p>Therefore, <code>vruntime</code> accurately measures the runtime of a given process and indicates which process should run next.</p>
+<h3>Process selection</h3>
+<p>Simple rule: Picks the process with the smallest <code>vruntime</code>.</p>
+<p>However, how to implement this function effectively is not simple. CFS uses a <code>red-black tree</code> to manage the list of runnable processes so that the task with smallest <code>vruntime</code> can be found in O(1) time.</p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>
