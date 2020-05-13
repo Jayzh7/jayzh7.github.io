@@ -101,17 +101,17 @@ timeslice too long-&gt; high latency</p>
 <thead>
 <tr>
 <th>nice value</th>
-<th align="center">timeslice</th>
+<th>timeslice</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>0</td>
-<td align="center">100</td>
+<td>100</td>
 </tr>
 <tr>
 <td>1</td>
-<td align="center">95</td>
+<td>95</td>
 </tr>
 </tbody>
 </table>
@@ -119,17 +119,17 @@ timeslice too long-&gt; high latency</p>
 <thead>
 <tr>
 <th>nice value</th>
-<th align="center">timeslice</th>
+<th>timeslice</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>18</td>
-<td align="center">10</td>
+<td>10</td>
 </tr>
 <tr>
 <td>19</td>
-<td align="center">5</td>
+<td>5</td>
 </tr>
 </tbody>
 </table>
@@ -234,6 +234,117 @@ timeslice too long-&gt; high latency</p>
 <h3>Process selection</h3>
 <p>Simple rule: Picks the process with the smallest <code>vruntime</code>.</p>
 <p>However, how to implement this function effectively is not simple. CFS uses a <code>red-black tree</code> to manage the list of runnable processes so that the task with smallest <code>vruntime</code> can be found in O(1) time.</p>
+<h3>Picking the next task</h3>
+<p>Finding the smallest node in a red-black tree takes O(logN). The function that performs the selection is <code>__pick_next_entity()</code> defined in <code>kernel/sched/fair.c</code>. </p>
+<div class="highlight"><pre><span></span><span class="k">static</span> <span class="k">struct</span> <span class="n">sched_entity</span> <span class="o">*</span><span class="nf">__pick_next_entity</span><span class="p">(</span><span class="k">struct</span> <span class="n">sched_entity</span> <span class="o">*</span><span class="n">se</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="n">rb_node</span> <span class="o">*</span><span class="n">next</span> <span class="o">=</span> <span class="n">rb_next</span><span class="p">(</span><span class="o">&amp;</span><span class="n">se</span><span class="o">-&gt;</span><span class="n">run_node</span><span class="p">);</span> <span class="c1">// find the next node of the current running node</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">next</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="n">rb_entry</span><span class="p">(</span><span class="n">next</span><span class="p">,</span> <span class="k">struct</span> <span class="n">sched_entity</span><span class="p">,</span> <span class="n">run_node</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This snippet differs from the version referenced by the book. I hope to go back later.</p>
+<h3>Adding processes to the tree</h3>
+<p>When a process becomes runnable or is first created via <code>fork()</code>, we need to add it to the rbtree which is done by <code>enqueue_entity()</code>. It first executes <code>update_curr()</code> to update the runtime and other statistics and then invoke <code>__enqueue_entity()</code> to do the actual heavy lifting of inserting. </p>
+<h3>Removing processes from the tree</h3>
+<p>When a process blocks (becomes unrunnable) or terminates (cease to exist), CFS will remove it from the rb-tree. This is done by <code>dequeue_entity()</code>. First, runtime statistics are updated first, then the node is removed by calling a helper function <code>__dequeue_entity()</code>. Lastly, the <code>rb_leftmost</code> cache will be updated and the leftmost node will be updated if the removed process was the leftmost one. </p>
+<h3>The scheduler entry point</h3>
+<p>The main entry point into the process scheduler is the function <code>schedule()</code> defined in <code>kernel/sched.c</code>. Its core is the invocation of <code>pick_next_task()</code> which goes through all scheduler classes and selects the highest prirority process in the highest priority class:</p>
+<div class="highlight"><pre><span></span><span class="k">static</span> <span class="kr">inline</span> <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span>
+<span class="nf">pick_next_task</span><span class="p">(</span><span class="k">struct</span> <span class="n">rq</span> <span class="o">*</span><span class="n">rq</span><span class="p">,</span> <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span><span class="n">prev</span><span class="p">,</span> <span class="k">struct</span> <span class="n">rq_flags</span> <span class="o">*</span><span class="n">rf</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">const</span> <span class="k">struct</span> <span class="n">sched_class</span> <span class="o">*</span><span class="n">class</span><span class="p">;</span>
+    <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
+
+    <span class="c1">// If all tasks are in the fair class, we can call that function diretly, but only if</span>
+    <span class="c1">// the prev task wasn&#39;t of a higher scheduling class</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">likely</span><span class="p">((</span><span class="n">prev</span><span class="o">-&gt;</span><span class="n">sched_class</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">idle_sched_class</span> <span class="o">||</span>
+            <span class="n">prev</span><span class="o">-&gt;</span><span class="n">sched_class</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">fair_sched_class</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+           <span class="n">rq</span><span class="o">-&gt;</span><span class="n">nr_running</span> <span class="o">==</span> <span class="n">rq</span><span class="o">-&gt;</span><span class="n">cfs</span><span class="p">.</span><span class="n">h_nr_running</span><span class="p">))</span> <span class="p">{</span>
+
+        <span class="n">p</span> <span class="o">=</span> <span class="n">pick_next_task_fair</span><span class="p">(</span><span class="n">rq</span><span class="p">,</span> <span class="n">prev</span><span class="p">,</span> <span class="n">rf</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="n">RETRY_TASK</span><span class="p">))</span>
+            <span class="k">goto</span> <span class="n">restart</span><span class="p">;</span>
+
+        <span class="cm">/* Assumes fair_sched_class-&gt;next == idle_sched_class */</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">put_prev_task</span><span class="p">(</span><span class="n">rq</span><span class="p">,</span> <span class="n">prev</span><span class="p">);</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">pick_next_task_idle</span><span class="p">(</span><span class="n">rq</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">p</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// ...</span>
+
+    <span class="n">for_each_class</span><span class="p">(</span><span class="n">class</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">class</span><span class="o">-&gt;</span><span class="n">pick_next_task</span><span class="p">(</span><span class="n">rq</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">p</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">BUG</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3>Sleeping and Waking up</h3>
+<p>A task sleeps(blocks) while it is waiting for some event which can be:</p>
+<ul>
+<li>a specified amount of time</li>
+<li>data from a fil I/O</li>
+<li>hardware event</li>
+<li>obtaining a contended semaphore</li>
+</ul>
+<p>The task marks itself as sleeping, puts itself on a wait queue, removes itself from the rbtree of runnable and calls <code>schedule</code> to select a new process to execute. Waking it up is the inverse: set as runnable, remove from the wait queue, add to rbtree.</p>
+<p>There are two states associated with sleeping, <code>TASK_INTERRUPTIBLE</code> and <code>TASK_UNINTERRUPTIBLE</code>. They differ only in that in the <code>TASK_UN...</code> state ignore signals, whereas the other one wake up prematurely and respond to a signal if one is issued.</p>
+<h3>Wait queues</h3>
+<p>A wait queue is a simple list of processes waiting for an event to occur. When the associated event occurs, the processes on the wait queue are awakened.</p>
+<p>If the task go to sleep <em>after</em> the condition becomes true, the task might sleep indefintely. Therefore, to avoid the race condition, the followings steps should be taken:</p>
+<div class="highlight"><pre><span></span><span class="cm">/* ‘q’ is the wait queue we wish to sleep on */</span>
+    <span class="n">DEFINE_WAIT</span><span class="p">(</span><span class="n">wait</span><span class="p">);</span>
+    <span class="n">add_wait_queue</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">wait</span><span class="p">);</span> 
+    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">condition</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* condition is the event that we are waiting for */</span>
+        <span class="n">prepare_to_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">q</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">wait</span><span class="p">,</span> <span class="n">TASK_INTERRUPTIBLE</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">signal_pending</span><span class="p">(</span><span class="n">current</span><span class="p">))</span>
+            <span class="cm">/* handle signal */</span>
+            <span class="n">schedule</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="n">finish_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">q</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">wait</span><span class="p">);</span>
+</pre></div>
+
+
+<ol>
+<li>creates a wait queue entry via the macro <code>DEFINE_WAIT()</code>  </li>
+<li>Add itself to a wait queue via <code>add_wait_queue()</code>.  </li>
+<li>calls <code>prepare_to_wait()</code> to change the process state to either <code>TASK_INTERRUPTIBLE</code> or <code>TASK_UNINTERRUPTIBLE</code>. this function also adds the task back to the queue if necessary.  </li>
+<li>If the state is set to <code>TASK_INTERRUPTIBLE</code>, a signal wakes the process up which is called <em>spurious wake up</em>.  </li>
+<li>When the task awakens, it checks whether the condition is true. If true, exits the loop. Otherwise, calls <code>schedule()</code>.  </li>
+<li>Now that the condition is true, the task set itself to <code>TASK_RUNNING</code> and removes itself from the wait queue via <code>finish_wait()</code>.</li>
+</ol>
+<h3>Waking up</h3>
+<p>Waking is handled by <code>wake_up()</code> which calls <code>try_to_wake_up()</code> that does the following:</p>
+<ol>
+<li>sets the task's state to <code>TASK_RUNNING</code>.</li>
+<li>calls <code>enqueue_task()</code> to add the task to the rbtree</li>
+<li>sets <code>need_resched</code> if the new task's priority is higher than that of the current task.</li>
+</ol>
+<blockquote>
+<p>Note: There are spurious wake-ups. A task is awakened does not mean that its associated event has occured; sleeping should always be handled in a loop that ensures that the condition is satisfied.</p>
+</blockquote>
+<p><img alt="Sleeping and waking up" src="/images/figure4_1.PNG">
+figure: sleeping and waking up flowchart</p>
+<h2>Preemption and context switch</h2>
+<p>Context switch is handled by <code>context_switch()</code> defined in <code>kernel/sched/core.c</code>. It is called by <code>schedule()</code> when a new process has been selected to run. It does:</p>
+<ol>
+<li>calls <code>switch_mm()</code>, declared in <code>&lt;asm/mmu_context.h&gt;</code>, to switch the virtual memory mapping.</li>
+<li>calls <code>switch_to()</code>, declared in <code>&lt;asm/system.h&gt;</code>, to switch the process state, which involves: 1, saving and restoring stack information and processor registers and any other architecture specific state that must be managed and restored on a per-processor basis.</li>
+</ol>
     </div><!-- /.entry-content -->
 
   </article>

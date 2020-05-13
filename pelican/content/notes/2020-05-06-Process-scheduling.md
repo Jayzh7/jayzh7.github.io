@@ -96,13 +96,13 @@ The CFS is for normal processes, called `SCHED_NORMAL` in Linux. As aforemention
 A second problem concerns relative nice values and the nice value to timeslice mapping.
 
 |nice value|timeslice|
-|----------|:-------:|
+|----------|-------|
 | 0| 100|
 | 1| 95 |
 
 
 |nice value|timeslice|
-|----------|:-------:|
+|----------|-------|
 | 18| 10|
 | 19| 5 |
 
@@ -219,4 +219,127 @@ Simple rule: Picks the process with the smallest `vruntime`.
 
 However, how to implement this function effectively is not simple. CFS uses a `red-black tree` to manage the list of runnable processes so that the task with smallest `vruntime` can be found in O(1) time.
 
+### Picking the next task
+
+Finding the smallest node in a red-black tree takes O(logN). The function that performs the selection is `__pick_next_entity()` defined in `kernel/sched/fair.c`. 
+
+```C
+static struct sched_entity *__pick_next_entity(struct sched_entity *se)
+{
+	struct rb_node *next = rb_next(&se->run_node); // find the next node of the current running node
+
+	if (!next)
+		return NULL;
+
+	return rb_entry(next, struct sched_entity, run_node);
+}
+```
+This snippet differs from the version referenced by the book. I hope to go back later.
+
+### Adding processes to the tree
+
+When a process becomes runnable or is first created via `fork()`, we need to add it to the rbtree which is done by `enqueue_entity()`. It first executes `update_curr()` to update the runtime and other statistics and then invoke `__enqueue_entity()` to do the actual heavy lifting of inserting. 
+
+### Removing processes from the tree
+
+When a process blocks (becomes unrunnable) or terminates (cease to exist), CFS will remove it from the rb-tree. This is done by `dequeue_entity()`. First, runtime statistics are updated first, then the node is removed by calling a helper function `__dequeue_entity()`. Lastly, the `rb_leftmost` cache will be updated and the leftmost node will be updated if the removed process was the leftmost one. 
+
+### The scheduler entry point
+
+ The main entry point into the process scheduler is the function `schedule()` defined in `kernel/sched.c`. Its core is the invocation of `pick_next_task()` which goes through all scheduler classes and selects the highest prirority process in the highest priority class:
+
+```C
+static inline struct task_struct *
+pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+{
+	const struct sched_class *class;
+	struct task_struct *p;
+
+    // If all tasks are in the fair class, we can call that function diretly, but only if
+    // the prev task wasn't of a higher scheduling class
+    if (likely((prev->sched_class == &idle_sched_class ||
+		    prev->sched_class == &fair_sched_class) &&
+		   rq->nr_running == rq->cfs.h_nr_running)) {
+
+		p = pick_next_task_fair(rq, prev, rf);
+		if (unlikely(p == RETRY_TASK))
+			goto restart;
+
+		/* Assumes fair_sched_class->next == idle_sched_class */
+		if (!p) {
+			put_prev_task(rq, prev);
+			p = pick_next_task_idle(rq);
+		}
+
+		return p;
+	}
+
+    // ...
+    
+    for_each_class(class) {
+        p = class->pick_next_task(rq);
+        if (p)
+            return p;
+    }
+
+    BUG();
+}
+```
+
+### Sleeping and Waking up
+
+A task sleeps(blocks) while it is waiting for some event which can be:
+
++ a specified amount of time
++ data from a fil I/O
++ hardware event
++ obtaining a contended semaphore
+
+The task marks itself as sleeping, puts itself on a wait queue, removes itself from the rbtree of runnable and calls `schedule` to select a new process to execute. Waking it up is the inverse: set as runnable, remove from the wait queue, add to rbtree.
+
+There are two states associated with sleeping, `TASK_INTERRUPTIBLE` and `TASK_UNINTERRUPTIBLE`. They differ only in that in the `TASK_UN...` state ignore signals, whereas the other one wake up prematurely and respond to a signal if one is issued.
+
+### Wait queues
+
+A wait queue is a simple list of processes waiting for an event to occur. When the associated event occurs, the processes on the wait queue are awakened.
+
+If the task go to sleep _after_ the condition becomes true, the task might sleep indefintely. Therefore, to avoid the race condition, the followings steps should be taken:
+```C
+/* ‘q’ is the wait queue we wish to sleep on */
+    DEFINE_WAIT(wait);
+    add_wait_queue(q, &wait); 
+    while (!condition) { /* condition is the event that we are waiting for */
+        prepare_to_wait(&q, &wait, TASK_INTERRUPTIBLE);
+        if (signal_pending(current))
+            /* handle signal */
+            schedule();
+        }
+    finish_wait(&q, &wait);
+```
+1. creates a wait queue entry via the macro `DEFINE_WAIT()`  
+2. Add itself to a wait queue via `add_wait_queue()`.  
+3. calls `prepare_to_wait()` to change the process state to either `TASK_INTERRUPTIBLE` or `TASK_UNINTERRUPTIBLE`. this function also adds the task back to the queue if necessary.  
+4. If the state is set to `TASK_INTERRUPTIBLE`, a signal wakes the process up which is called _spurious wake up_.  
+5. When the task awakens, it checks whether the condition is true. If true, exits the loop. Otherwise, calls `schedule()`.  
+6. Now that the condition is true, the task set itself to `TASK_RUNNING` and removes itself from the wait queue via `finish_wait()`.
+
+### Waking up
+
+Waking is handled by `wake_up()` which calls `try_to_wake_up()` that does the following:
+
+1. sets the task's state to `TASK_RUNNING`.
+2. calls `enqueue_task()` to add the task to the rbtree
+3. sets `need_resched` if the new task's priority is higher than that of the current task.
+
+> Note: There are spurious wake-ups. A task is awakened does not mean that its associated event has occured; sleeping should always be handled in a loop that ensures that the condition is satisfied.
+
+![Sleeping and waking up]({static}/images/figure4_1.PNG)
+figure: sleeping and waking up flowchart
+
+## Preemption and context switch
+
+Context switch is handled by `context_switch()` defined in `kernel/sched/core.c`. It is called by `schedule()` when a new process has been selected to run. It does:
+
+1. calls `switch_mm()`, declared in `<asm/mmu_context.h>`, to switch the virtual memory mapping.
+2. calls `switch_to()`, declared in `<asm/system.h>`, to switch the process state, which involves: 1, saving and restoring stack information and processor registers and any other architecture specific state that must be managed and restored on a per-processor basis.
 

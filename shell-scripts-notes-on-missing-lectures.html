@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>Shell scripts - notes on missing lectures</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/shell-scripts-notes-on-missing-lectures.html" rel="bookmark"
+           title="Permalink to Shell scripts - notes on missing lectures">Shell scripts - notes on missing lectures</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Mon 11 May 2020</span>
+<span>| tags: <a href="/tag/linux.html">Linux</a><a href="/tag/missing-lecture.html">Missing lecture</a></span>
+</footer><!-- /.post-info -->      <h2>Shell scripting</h2>
+<p>Shell scripting is optimized for performing shell related tasks.</p>
+<p>String in bash can be defined with ' and " delimiters but they are not same. ' is used for literals while " can be used with variables. Variables inside " will be substituted with its value.</p>
+<div class="highlight"><pre><span></span><span class="nv">foo</span><span class="o">=</span>bar
+<span class="nb">echo</span> <span class="s2">&quot;</span><span class="nv">$foo</span><span class="s2">&quot;</span>
+<span class="c1"># prints bar</span>
+<span class="nb">echo</span> <span class="err">&#39;</span><span class="nv">$foo</span><span class="s2">&quot;</span>
+<span class="s2"># prints </span><span class="nv">$foo</span><span class="s2"></span>
+</pre></div>
+
+
+<p>Shell scripts accept arguments from users.</p>
+<ul>
+<li><code>$0</code> - name of the script</li>
+<li><code>$1</code> to <code>$9</code> - arugments to the script.</li>
+<li><code>$@</code> - all the arguments</li>
+<li><code>$?</code> - return code of the previous command. 0 means OK, otherwise not.</li>
+<li><code>$$</code> - process id of the current script</li>
+<li><code>!!</code> - entire last command including arguments.</li>
+<li><code>$_</code> - last argument from the last command</li>
+</ul>
+<p>Exit code can be used to conditionally execute commands using <code>&amp;&amp;</code> and <code>||</code>.</p>
+<div class="highlight"><pre><span></span><span class="nb">false</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">&quot;Oops, fail&quot;</span>
+<span class="c1"># the second part will be executed</span>
+
+<span class="nb">true</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">&quot;will not be printed&quot;</span>
+<span class="c1"># the second part will not be executed</span>
+
+<span class="nb">false</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">&quot;will not be printed&quot;</span>
+
+<span class="nb">true</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">&quot;things went well&quot;</span>
+</pre></div>
+
+
+<p>Use the output of a command as a variable which can be done by <code>$(CMD)</code>.</p>
+<p>```bash</p>
+<h1>iterate the files in current directory</h1>
+<p>for file in $(ls)</p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>
