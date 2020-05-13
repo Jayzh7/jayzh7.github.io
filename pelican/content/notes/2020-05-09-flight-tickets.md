@@ -5,10 +5,17 @@ summary: flight ticket information gathered manually
 category: notes
 visible: True
 ---
-
-## Ticket price (updated 5/10)
+## Flight schedule
 ---
-| departure | arrivial | date | price | airline |
+| departure | arrival | schedule | airline |
+| ---       | ---     | ---      | ---     |
+| AMS       | SHANGHAI| mon      | Eastern |
+| AMS       | GUANGZHOU| fri     | Southern|
+| AMS       | XIAMEN  | Wed      | Xiamen  |
+
+## Ticket price (updated 5/13)
+---
+| departure | arrival | date | price | airline |
 | ---       | ---      | ---  | ---   | ---     |
 | VIE       | PEK      | 7/04 | 15,330| CA      |
 | VIE       | PEK      | 7/11 | 15,330| CA      |
@@ -20,8 +27,9 @@ visible: True
 | ATH       | PEK      | 7/11 | 16,090| CA      |
 | CDG       | PEK      | 7/08 | 24,460| CA      |
 | BRU       | PEK      | 7/07 | 15,300| HN      | 
-
-
+| AMS       | SHANGHAI | 7/06 | 23,710| Eastern |
+| AMS       | SHANGHAI | 7/13 | 23,710| Eastern |
+| AMS       | GUANGZHOU| 7/10 | 28,852| Southern|
 ## booked:
 ---
 BRU-PEK 7/07  16,715
@@ -29,4 +37,5 @@ BRU-PEK 7/07  16,715
 
 ## info:
 ---
-KLM only refund vouchers for flights booked after 21st April 2020. It seems that flights to and from China are exceptions. Still trying to confirm.
++ KLM only refund vouchers for flights booked after 21st April 2020. It seems that flights to and from China are exceptions. Still trying to confirm.
++ possible transfer at Seoul
