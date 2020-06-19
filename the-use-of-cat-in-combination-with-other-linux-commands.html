@@ -40,7 +40,7 @@
 <p><code>cat</code> is short for "<strong>concatenate</strong>". It allows us to create one or more files, view contents, concatenate files, and redirect output to terminals or files.</p>
 <h3>view contents</h3>
 <p><code>cat</code> will direct all contents of a file to std output (therefore can be combined with pipe to see only part of it).</p>
-<div class="highlight"><pre><span></span>$ cat /etc/os-release 
+<div class="highlight"><pre><span></span><code>$ cat /etc/os-release 
 <span class="nv">NAME</span><span class="o">=</span><span class="s2">&quot;Scientific Linux&quot;</span>
 <span class="nv">VERSION</span><span class="o">=</span><span class="s2">&quot;7.6 (Nitrogen)&quot;</span>
 ...
@@ -48,14 +48,14 @@
 $ cat file1 file2
 contents of file1
 contents of file2
-</pre></div>
+</code></pre></div>
 
 
 <h3>create a new file</h3>
 <p>Input from terminal can also be redirected into a file with <code>cat</code>. Finish input by <code>ctrl+d</code>.</p>
-<div class="highlight"><pre><span></span>$ cat &gt; text
+<div class="highlight"><pre><span></span><code>$ cat &gt; text
 input here
-</pre></div>
+</code></pre></div>
 
 
 <h3>redirect to other commands</h3>
@@ -129,25 +129,25 @@ input here
 </tbody>
 </table>
 <h3>useful options of cat</h3>
-<div class="highlight"><pre><span></span>$ cat -n /etc/passwd  <span class="c1"># display line numbers in file</span>
+<div class="highlight"><pre><span></span><code>$ cat -n /etc/passwd  <span class="c1"># display line numbers in file</span>
 $ cat -e <span class="nb">test</span>  <span class="c1"># display $ at the end of line</span>
 hello everyone, how <span class="k">do</span> you <span class="k">do</span>?$
 $
 Hey, I am fine.$
 How is  your training going on?$
 $
-</pre></div>
+</code></pre></div>
 
 
 <h2>Use std output with redirection operators</h2>
 <p>Note the use of one and two redirection operators.</p>
-<div class="highlight"><pre><span></span>$ cat <span class="nb">test</span> &gt; test1  <span class="c1"># contents in test will overwrite contents in test1 </span>
+<div class="highlight"><pre><span></span><code>$ cat <span class="nb">test</span> &gt; test1  <span class="c1"># contents in test will overwrite contents in test1 </span>
 $ cat <span class="nb">test</span> &gt;&gt; test1 <span class="c1"># contents in test will be appended into test1</span>
-</pre></div>
+</code></pre></div>
 
 
 <h2>examples</h2>
-<div class="highlight"><pre><span></span>$ cat -n /etc/os-release <span class="p">|</span> less +10  
+<div class="highlight"><pre><span></span><code>$ cat -n /etc/os-release <span class="p">|</span> less +10  
     <span class="m">10</span>  <span class="nv">BUG_REPORT_URL</span><span class="o">=</span><span class="s2">&quot;mailto:scientific-linux-devel@listserv.fnal.gov&quot;</span>
     <span class="m">11</span>  
     <span class="m">12</span>  <span class="nv">REDHAT_BUGZILLA_PRODUCT</span><span class="o">=</span><span class="s2">&quot;Scientific Linux 7&quot;</span>
@@ -160,15 +160,15 @@ cba
 ba
 a<span class="o">(</span>ctrl+d to end input<span class="o">)</span>
 $ cat text <span class="p">|</span> grep a
-</pre></div>
+</code></pre></div>
 
 
 <p>db<span style="color:red">a</span>c<br>
 cb<span style="color:red">a</span><br>
 b<span style="color:red">a</span><br>
 <span style="color:red">a</span>  </p>
-<div class="highlight"><pre><span></span>$ cat text <span class="p">|</span> sort <span class="p">|</span> grep a
-</pre></div>
+<div class="highlight"><pre><span></span><code>$ cat text <span class="p">|</span> sort <span class="p">|</span> grep a
+</code></pre></div>
 
 
 <p><span style="color:red">a</span><br>

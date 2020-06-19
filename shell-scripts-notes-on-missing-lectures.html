@@ -36,15 +36,15 @@
 </footer><!-- /.post-info -->      <h2>Shell scripting</h2>
 <p>Shell scripting is optimized for performing shell related tasks.</p>
 <p>String in bash can be defined with ' and " delimiters but they are not same. ' is used for literals while " can be used with variables. Variables inside " will be substituted with its value.</p>
-<div class="highlight"><pre><span></span><span class="nv">foo</span><span class="o">=</span>bar
+<div class="highlight"><pre><span></span><code><span class="nv">foo</span><span class="o">=</span>bar
 <span class="nb">echo</span> <span class="s2">&quot;</span><span class="nv">$foo</span><span class="s2">&quot;</span>
 <span class="c1"># prints bar</span>
 <span class="nb">echo</span> <span class="err">&#39;</span><span class="nv">$foo</span><span class="s2">&quot;</span>
 <span class="s2"># prints </span><span class="nv">$foo</span><span class="s2"></span>
-</pre></div>
+</code></pre></div>
 
 
-<p>Shell scripts accept arguments from users.</p>
+<p>Shell scripts accept arguments from users. Some special characters below. <a href="https://www.tldp.org/LDP/abs/html/special-chars.html">A more comprehensive list</a></p>
 <ul>
 <li><code>$0</code> - name of the script</li>
 <li><code>$1</code> to <code>$9</code> - arugments to the script.</li>
@@ -55,7 +55,7 @@
 <li><code>$_</code> - last argument from the last command</li>
 </ul>
 <p>Exit code can be used to conditionally execute commands using <code>&amp;&amp;</code> and <code>||</code>.</p>
-<div class="highlight"><pre><span></span><span class="nb">false</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">&quot;Oops, fail&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nb">false</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">&quot;Oops, fail&quot;</span>
 <span class="c1"># the second part will be executed</span>
 
 <span class="nb">true</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">&quot;will not be printed&quot;</span>
@@ -64,13 +64,101 @@
 <span class="nb">false</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">&quot;will not be printed&quot;</span>
 
 <span class="nb">true</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">&quot;things went well&quot;</span>
-</pre></div>
+</code></pre></div>
 
 
-<p>Use the output of a command as a variable which can be done by <code>$(CMD)</code>.</p>
-<p>```bash</p>
-<h1>iterate the files in current directory</h1>
-<p>for file in $(ls)</p>
+<p><em>Command substitution</em>: Using the output of a command as a variable can be done by <code>$(CMD)</code>. 
+<em>Process substitution</em>: <code>&lt;(CMD)</code> will execute <code>CMD</code> and place the output in a temporary file and substitute the <code>&lt;(CMD)</code> with that file's name.</p>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
+<span class="c1"># An example for showcasing the features</span>
+
+<span class="nb">echo</span> <span class="s2">&quot;Starting program at </span><span class="k">$(</span>date<span class="k">)</span><span class="s2">&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;Running program </span><span class="nv">$0</span><span class="s2"> with </span><span class="nv">$#</span><span class="s2"> arguments with pid </span><span class="nv">$$</span><span class="s2">&quot;</span>
+
+<span class="k">for</span> file in <span class="nv">$@</span><span class="p">;</span> <span class="k">do</span>
+    grep foobar <span class="nv">$file</span> &gt; /dev/null <span class="m">2</span>&gt; /dev/null
+
+    <span class="c1"># when pattern is not found, grep return 1.</span>
+    <span class="k">if</span> <span class="o">[[</span> <span class="nv">$?</span> -ne <span class="m">0</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
+        <span class="nb">echo</span> <span class="s2">&quot;File </span><span class="nv">$file</span><span class="s2"> does not have any foobar, adding one&quot;</span>
+        <span class="nb">echo</span> <span class="s2">&quot;# foobar&quot;</span> &gt;&gt; <span class="s2">&quot;</span><span class="nv">$file</span><span class="s2">&quot;</span>
+    <span class="k">fi</span>
+<span class="k">done</span>
+</code></pre></div>
+
+
+<blockquote>
+<p><code>[[</code> and <code>[</code> are both used to evalute expressions. <code>[[</code> works only in Bash, Zsh, and Korn shell, and is more powerful; <code>[</code> and <code>test</code> are available in POSIX shells.<br>
+<code>[[</code> is a keyword rather than a program like <code>test</code> and <code>[</code>. It is easier to use. Detailed explanation see <a href="http://mywiki.wooledge.org/BashFAQ/031">here</a> and <a href="https://stackoverflow.com/questions/669452/is-double-square-brackets-preferable-over-single-square-brackets-in-ba">here</a></p>
+</blockquote>
+<p><em>shell globbing</em> is a technique used to provide arguments of similar names to scripts.</p>
+<ul>
+<li>Wildcards </li>
+<li>Curly braces <code>{}</code></li>
+</ul>
+<p><a href="https://www.shellcheck.net/">Shell check</a> is an online tool to check shell scripts.</p>
+<h3>Shebang</h3>
+<p>The shell knows how to execute the scripts by the <strong>shebang</strong> line at the top of the script. A good practice is to write shebang lines using the <code>env</code> command that resolves where to find the commands like</p>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env bash</span>
+</code></pre></div>
+
+
+<h3>Find files</h3>
+<p><code>find</code> command will recursively search for files matching some criteria.</p>
+<table>
+<thead>
+<tr>
+<th align="center">options</th>
+<th align="center">examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">-name</td>
+<td align="center">file name</td>
+</tr>
+<tr>
+<td align="center">-iname</td>
+<td align="center">file name ignore case</td>
+</tr>
+<tr>
+<td align="center">-path</td>
+<td align="center">specify file path</td>
+</tr>
+<tr>
+<td align="center">-type</td>
+<td align="center">d (directory) f (file)</td>
+</tr>
+<tr>
+<td align="center">-mtime</td>
+<td align="center">modify time</td>
+</tr>
+<tr>
+<td align="center">-size</td>
+<td align="center">+500k : &gt;500k   -10M : &lt; 10M</td>
+</tr>
+</tbody>
+</table>
+<p><code>find</code> can also perform actions over query results.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Delete all files with .tmp extension</span>
+find . -name <span class="s1">&#39;*.tmp&#39;</span> -exec rm <span class="o">{}</span> <span class="se">\;</span> 
+<span class="c1"># Convert all PNG files to JPG files</span>
+find . -name <span class="s1">&#39;*.png&#39;</span> -exec convert <span class="o">{}</span> <span class="o">{</span>.<span class="o">}</span>.jpg <span class="se">\;</span>
+</code></pre></div>
+
+
+<h3>find code</h3>
+<p>We can find code by <code>grep</code> which offers us a lot of options like</p>
+<ul>
+<li>-C for getting context around the matching line</li>
+<li>-v for inverting the match</li>
+<li>-R for going into directories recursively and look for text files</li>
+</ul>
+<p>Some alternatives to <code>grep</code> that add other features like multi-thread support like <code>ack</code>, <code>ag</code>, and <code>rg</code>.</p>
+<h3>find shell commands</h3>
+<p>To find the commands you have executed a while ago. the <code>history</code> command can be of help. It prints the shell history to the standard output. Therefore, we can search for patterns using <code>grep</code>.</p>
+<p>In most shells, it is also possible to type <code>Ctrl+R</code> to perform backwards search. After typing the command, you can enter a pattern and go backwards by typing <code>Ctrl+R</code> again.</p>
+<p>A leading space can avoid commands from ending up in the history to protect sensitive information.</p>
     </div><!-- /.entry-content -->
 
   </article>
