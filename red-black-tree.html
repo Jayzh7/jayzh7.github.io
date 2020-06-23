@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
         <meta charset="utf-8" />
-        <title>Techspace - Tags</title>
+        <title>red black tree</title>
         <link rel="stylesheet" href="/theme/css/main.css" />
 
         <!--[if IE]>
@@ -17,22 +17,35 @@
     
                         <li><a href="/pages/about-me.html">about me</a></li>
                     <li><a href="/category/leetcode.html">LeetCode</a></li>
-                    <li><a href="/category/notes.html">notes</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
                     <li><a href="/category/other.html">Other</a></li>
                 </ul>
                 </nav>
         </header><!-- /#banner -->
-
 <section id="content" class="body">
-    <h1>Tags for Techspace</h1>        <li><a href="/tag/data-structure.html">Data Structure</a> (1)</li>
-        <li><a href="/tag/economics.html">Economics</a> (1)</li>
-        <li><a href="/tag/leetcode.html">LeetCode</a> (3)</li>
-        <li><a href="/tag/linux.html">Linux</a> (8)</li>
-        <li><a href="/tag/linux-kernel.html">Linux kernel</a> (3)</li>
-        <li><a href="/tag/missing-lecture.html">Missing lecture</a> (1)</li>
-        <li><a href="/tag/ml.html">ML</a> (3)</li>
-</section>
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/red-black-tree.html" rel="bookmark"
+           title="Permalink to red black tree">red black tree</a></h1>
+    </header>
 
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Sun 21 June 2020</span>
+<span>| tags: <a href="/tag/data-structure.html">Data Structure</a></span>
+</footer><!-- /.post-info -->      <h2>Properties</h2>
+<ol>
+<li>Each node is either black or red.</li>
+<li>All leaves are black. (root is as well black, but less important for analysis).</li>
+<li>If a node is red, its children are black.</li>
+<li>Every path from a node to its descendant NIL nodes goes through the same number of black nodes. (Every perfect binary tree that consists of only black nodes are red-black tree)</li>
+</ol>
+<p>The constraints enforce: path to furthest leaf is no more than twice as long as the path to the nearest leaf, i.e., h &lt; 2 lg(n+1).</p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
         <section id="extras" class="body">
                 <div class="blogroll">
                         <h2>blogroll</h2>

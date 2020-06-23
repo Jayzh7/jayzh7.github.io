@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>Select, poll, and epoll on Linux</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li><a href="/category/leetcode.html">LeetCode</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/select-poll-and-epoll-on-linux.html" rel="bookmark"
+           title="Permalink to Select, poll, and epoll on Linux">Select, poll, and epoll on Linux</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Tue 23 June 2020</span>
+<span>| tags: <a href="/tag/linux.html">Linux</a></span>
+</footer><!-- /.post-info -->      <h2>Motivation</h2>
+<p>As a server, there are usually more than 1 connection to deal with. A lot of file descriptors (representing the connection) need to be monitored and responded. Conventional multithread does not work well as it involves costly context switch.</p>
+<p>A simple loop would be too slow and inefficient.</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="nl">open_connections</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">has_new_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">:</span>
+        <span class="n">process_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</code></pre></div>
+
+
+<p>Linux offered three ways to monitor the <code>fd</code>s: <code>select</code>, <code>poll</code>, <code>epoll</code>.</p>
+<h2>Select &amp; Poll</h2>
+<p><code>select</code> accepts a list of file descriptors to get information about, and returns the information about which <code>fd</code> to write or read.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// sys call for __select__</span>
+<span class="cm">/********************</span>
+<span class="cm">inp:  fd for input</span>
+<span class="cm">outp: fd for output      </span>
+<span class="cm">exp:  fd for exceptions                </span>
+<span class="cm">tvp:  timeout value</span>
+<span class="cm">*********************/</span>
+<span class="n">SYSCALL_DEFINE5</span><span class="p">(</span><span class="n">select</span><span class="p">,</span> <span class="kt">int</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">fd_set</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">fd_set</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">fd_set</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">exp</span><span class="p">,</span> <span class="k">struct</span> <span class="n">timeval</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">tvp</span><span class="p">)</span>
+</code></pre></div>
+
+
+<p><a href="https://elixir.bootlin.com/linux/latest/source/include/uapi/linux/posix_types.h#L26"><code>fd_set</code></a> is an array of unsigned long integer storing bit values indicating if there is data to write or read. The default size is 1024 bits which means it supports monitoring at most 1024 tasks at the same time. </p>
+<p>Cons of <code>select</code>:
+1. the sets need to be re-initialized every time before being passed to <code>select</code> and cannot be reused. 
+2. 1024 tasks at most (can be modified but leads to slow performance).
+3. the cost of copying <code>fd</code>s from user space to kernel space is high.
+4. requires iterating through the whole <code>fd</code> list after returning which is <code>O(n)</code> complexity.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// structure of `pollfd`.</span>
+<span class="k">struct</span> <span class="n">pollfd</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
+    <span class="kt">short</span> <span class="n">events</span><span class="p">;</span>  <span class="c1">// set events to monitor, can be POLLIN, POLLOUT, etc. </span>
+    <span class="kt">short</span> <span class="n">revents</span><span class="p">;</span> <span class="c1">// receive events. Corresponding flags will be set to 1 if the event occurs.</span>
+                   <span class="c1">// it needs to be reset after every read for next time use.</span>
+<span class="p">};</span>
+
+<span class="c1">// sys call for __poll__</span>
+<span class="cm">/*********************</span>
+<span class="cm">ufds:  fds and events to monitor </span>
+<span class="cm">nfds:  number of fds to monitor</span>
+<span class="cm">*********************/</span>
+<span class="n">SYSCALL_DEFINE5</span><span class="p">(</span><span class="n">ppoll</span><span class="p">,</span> <span class="k">struct</span> <span class="n">pollfd</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">ufds</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span><span class="p">,</span> <span class="n">nfds</span><span class="p">,</span> <span class="k">struct</span> <span class="n">timespec</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">tsp</span><span class="p">,</span> <span class="k">const</span> <span class="kt">sigset_t</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">sigmask</span><span class="p">,</span>
+<span class="kt">size_t</span><span class="p">,</span> <span class="n">sigsetsize</span><span class="p">)</span>
+</code></pre></div>
+
+
+<p>Instead of using bitmaps, <code>poll</code> accepts an array of <code>pollfd</code> to monitor the specific tasks. This is especially useful when the <code>fd</code>s you want to monitor is sparse because you don't need to go through all the <code>fd</code>s every time but only iterate through the specific ones. Also, instead of having only 3 set of events like <code>select</code> (read, write, exception), the <code>events</code> variable in <code>pollfd</code> allows you to set events you'd like to monitor. See a comprehensive list of events <a href="see https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/poll.h">here</a>.</p>
+<p>Cons of <code>select</code>:<br>
+3 &amp; 4 of <code>poll</code>.</p>
+<h2>epoll</h2>
+<p>Due to the cons of <code>select</code> and <code>poll</code>, they are less widely used.</p>
+<blockquote>
+<p>level-triggered: triggers when receive buffer is not empty and when send buffer is not full. High frequency.
+edge-triggered: triggers when an empty receive buffer received data and when a full send buffer cleared new space. Low frequency.</p>
+</blockquote>
+<h3>calling procedure</h3>
+<ol>
+<li>related strcuts</li>
+</ol>
+<div class="highlight"><pre><span></span><code>    <span class="k">typedef</span> <span class="k">union</span> <span class="n">epoll_data</span>
+    <span class="p">{</span>
+    <span class="kt">void</span> <span class="o">*</span><span class="n">ptr</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">u32</span><span class="p">;</span>
+    <span class="kt">uint64_t</span> <span class="n">u64</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">epoll_data_t</span><span class="p">;</span>
+
+    <span class="k">struct</span> <span class="n">epoll_event</span>
+    <span class="p">{</span>
+    <span class="kt">uint32_t</span> <span class="n">events</span><span class="p">;</span>  <span class="cm">/* Epoll events */</span>
+    <span class="n">epoll_data_t</span> <span class="n">data</span><span class="p">;</span>    <span class="cm">/* User data variable */</span>
+    <span class="p">};</span>
+</code></pre></div>
+
+
+<ol>
+<li>call <code>epoll_create</code> to create an <code>epoll</code> and return an id.</li>
+</ol>
+<div class="highlight"><pre><span></span><code>    <span class="kt">int</span> <span class="n">epfd</span> <span class="o">=</span> <span class="n">epoll_create</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+</code></pre></div>
+
+
+<ol>
+<li>register <code>fd</code>s with <code>epoll_ctl</code>.</li>
+</ol>
+<div class="highlight"><pre><span></span><code>    <span class="k">struct</span> <span class="n">epoll_event</span> <span class="n">ev</span><span class="p">;</span>
+    <span class="n">ev</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">fd</span> <span class="o">=</span> <span class="n">accept</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span> <span class="p">...);</span> <span class="c1">// open a connection</span>
+    <span class="n">ev</span><span class="p">.</span><span class="n">events</span>  <span class="o">=</span> <span class="n">EPOLLIN</span><span class="p">;</span> <span class="c1">// register events type</span>
+    <span class="c1">//              add fd       </span>
+    <span class="n">epoll_ctl</span><span class="p">(</span><span class="n">epfd</span><span class="p">,</span> <span class="n">EPOLL_CTL_ADD</span><span class="p">,</span> <span class="n">ev</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">fd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ev</span><span class="p">);</span>
+</code></pre></div>
+
+
+<ol>
+<li>call <code>epoll_wait</code> to wait for updates and iterate through all active events.</li>
+</ol>
+<div class="highlight"><pre><span></span><code>    <span class="k">struct</span> <span class="n">epoll_event</span> <span class="n">events</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span>
+    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">nfds</span> <span class="o">=</span> <span class="n">epoll_wait</span><span class="p">(</span><span class="n">epfd</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10000</span><span class="p">);</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nfds</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">read</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">data</span><span class="p">.</span><span class="n">fd</span><span class="p">,</span> <span class="p">...);</span>
+            <span class="n">process</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</code></pre></div>
+
+
+<p>The <code>epoll_wait</code> will re-order the <code>fd</code>s such that active ones are at the beginning (this is efficient  due to the implementation of a red-black tree that allows fast O(lgN) insertion and deletion.)</p>
+<h3>Why is epoll fast</h3>
+<p>In <code>epoll_create</code>, a R-B tree is created for storing sockets and a linked list for storing ready events. And <code>epoll_wait</code> only needs to check if the list is empty, if not, it blocks and waits and return otherwise.</p>
+<p>So how is the linked list maintained? When we call <code>epoll_ctl</code>, aside from registering the socket with the RB-tree of the epoll instance, it also registers a callback function for processing interrupts. If the interrupt for the event arrives, the callback function will insert socket into the list. So whenever a socket receives data, the kernel copies the data from the Internet to the kernel and insert the socket into the list.</p>
+<p>Due to more syscalls and more switches between kernel mode and user mode, <code>epoll</code> can be more costly than <code>select</code> when almost all sockets are active.</p>
+<p>To conclude, <code>epoll</code> is more efficient in that:
+1. Use mmap to avoid costly memory copy.
+2. Use RB-tree for storing and re-ordering <code>fd</code>s to avoid iterating through all <code>fd</code>s.
+3. Reduces <code>fd</code>s copy between user space and kernel space.
+4. Use callback function to avoid performance degrade in high pressure scenarios.</p>
+<h2>References</h2>
+<p><a href="https://jvns.ca/blog/2017/06/03/async-io-on-linux--select--poll--and-epoll/">Async IO on Linux: select, poll, and epoll</a><br>
+<a href="https://zhuanlan.zhihu.com/p/93609693">深入理解 Epoll</a></p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>
