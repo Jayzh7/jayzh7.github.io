@@ -41,7 +41,75 @@
 <li>If a node is red, its children are black.</li>
 <li>Every path from a node to its descendant NIL nodes goes through the same number of black nodes. (Every perfect binary tree that consists of only black nodes are red-black tree)</li>
 </ol>
-<p>The constraints enforce: path to furthest leaf is no more than twice as long as the path to the nearest leaf, i.e., h &lt; 2 lg(n+1).</p>
+<p>The constraints enforce: path to furthest leaf is no more than twice as long as the path to the nearest leaf, i.e., h &lt; 2 lg(n+1). Thus, the height is still O(logN).</p>
+<p>Proof:</p>
+<ul>
+<li>When red children are combined with their black parents, the RB tree becomes a 2-4 tree (each node has 2, 3, or 4 children).</li>
+<li>Define the height of the 2-4 tree to be $$ h` $$. We then have $$ 2^{h`} \leq # nodes (N) \leq 4^{h`}.</li>
+<li>$$ h` \geq \frac{h}{2} $$</li>
+</ul>
+<p>=&gt; h &lt; 2log(N+1).</p>
+<h2>Insertion</h2>
+<p>Always insert a red node.</p>
+<table>
+<thead>
+<tr>
+<th>case no.</th>
+<th>father</th>
+<th>uncle</th>
+<th>type</th>
+<th>operations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>black</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>2</td>
+<td>red</td>
+<td>red</td>
+<td>-</td>
+<td>color reverse (CR)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>red</td>
+<td>black</td>
+<td>left-left</td>
+<td>right rotate + CR</td>
+</tr>
+<tr>
+<td>4</td>
+<td>red</td>
+<td>black</td>
+<td>right-right</td>
+<td>left rotate + CR</td>
+</tr>
+<tr>
+<td>5</td>
+<td>red</td>
+<td>black</td>
+<td>left-right</td>
+<td>left rotate + right rotate + CR</td>
+</tr>
+<tr>
+<td>6</td>
+<td>red</td>
+<td>black</td>
+<td>right-left</td>
+<td>right rotate + left rotate + CR</td>
+</tr>
+</tbody>
+</table>
+<p>If the father is black, inserting a red node will not violate the rules. If father and uncle are both red, reverse the color would do the trick. So father and uncle will turn black and the new one will be red.</p>
+<p>Case 3 and case 4 are symmetric. Do a left/right rotate and it will like case 2.
+Case 5 and case 6 are symmetric. Do a left/right rotate and it will degrade to be like case 3 and 4.</p>
+<p>Actual cases and code to follow.</p>
     </div><!-- /.entry-content -->
 
   </article>
