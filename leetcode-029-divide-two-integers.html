@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>LeetCode 029 - Divide two integers</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li class="active"><a href="/category/leetcode.html">LeetCode</a></li>
+                    <li><a href="/category/notes.html">Notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/leetcode-029-divide-two-integers.html" rel="bookmark"
+           title="Permalink to LeetCode 029 - Divide two integers">LeetCode 029 - Divide two integers</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Fri 26 June 2020</span>
+<span>| tags: <a href="/tag/leetcode.html">LeetCode</a></span>
+</footer><!-- /.post-info -->      <h2>Problem Description</h2>
+<p>Divide two integers with fractional part truncated.</p>
+<p><a href="https://leetcode.com/problems/divide-two-integers/">LeetCode 029 - Divide two integers</a> </p>
+<h2>Solutions</h2>
+<h3>My Solution</h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+    <span class="kt">int</span> <span class="n">divide</span><span class="p">(</span><span class="kt">int</span> <span class="n">dividend</span><span class="p">,</span> <span class="kt">int</span> <span class="n">divisor</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">res</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="c1">// sign of the result</span>
+        <span class="kt">bool</span> <span class="n">neg</span> <span class="o">=</span> <span class="p">(</span><span class="n">dividend</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">^</span> <span class="p">(</span><span class="n">divisor</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+        <span class="c1">// convert both numbers to negative</span>
+        <span class="n">dividend</span> <span class="o">=</span> <span class="p">(</span><span class="n">dividend</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">?</span> <span class="o">-</span><span class="nl">dividend</span> <span class="p">:</span> <span class="n">dividend</span><span class="p">;</span>
+        <span class="n">divisor</span>  <span class="o">=</span> <span class="p">(</span><span class="n">divisor</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">?</span> <span class="o">-</span><span class="nl">divisor</span> <span class="p">:</span> <span class="n">divisor</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">dividend</span> <span class="o">&gt;</span> <span class="n">divisor</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+        <span class="c1">// base divisor</span>
+        <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="n">divisor</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">s</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+        <span class="c1">// 1. To avoid overflow of (d+d), we need to make sure</span>
+        <span class="c1">//    d is greater than INT_MIN/2.</span>
+        <span class="c1">// 2. times `d` by 2 until we find the largest possible divisor.</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">d</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="p">((</span><span class="n">INT_MAX</span><span class="o">&gt;&gt;</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">dividend</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="n">d</span><span class="p">))</span> <span class="p">{</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="o">+</span><span class="n">d</span><span class="p">;</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">+</span><span class="n">s</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="c1">// Substract the dividend by the divisor until the dividend</span>
+        <span class="c1">// is less than the divisor.</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">dividend</span> <span class="o">&lt;=</span> <span class="n">divisor</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">dividend</span> <span class="o">&lt;=</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">dividend</span> <span class="o">-=</span> <span class="n">d</span><span class="p">;</span>
+                <span class="n">res</span> <span class="o">+=</span> <span class="n">s</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="c1">// essentially d /= 2 </span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">==</span> <span class="n">INT_MIN</span><span class="p">)</span> <span class="p">{</span>
+                <span class="c1">// if d is INT_MIN, we cannot directly invert the sign.</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="o">-</span><span class="p">(((</span><span class="o">-</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">2</span><span class="p">))</span><span class="o">&gt;&gt;</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="o">-</span><span class="p">((</span><span class="o">-</span><span class="n">d</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">1</span><span class="p">);</span> 
+            <span class="p">}</span>
+            <span class="c1">// s /= 2;</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">&gt;&gt;</span><span class="mi">1</span><span class="p">;</span> <span class="c1">// it worked. </span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">neg</span> <span class="o">&amp;&amp;</span> <span class="n">res</span> <span class="o">==</span> <span class="n">INT_MIN</span><span class="p">)</span> <span class="k">return</span> <span class="n">INT_MAX</span><span class="p">;</span>
+        <span class="k">return</span> <span class="n">neg</span><span class="o">?</span><span class="nl">res</span><span class="p">:</span><span class="o">-</span><span class="n">res</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div>
+
+
+<p>It turns out that some of the cumbersome if statements are not necessary once we rule out the extreme case (INT_MIN/-1).</p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>

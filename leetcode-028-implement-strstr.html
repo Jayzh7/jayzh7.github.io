@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>LeetCode 028 Implement strStr()</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li class="active"><a href="/category/leetcode.html">LeetCode</a></li>
+                    <li><a href="/category/notes.html">Notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/leetcode-028-implement-strstr.html" rel="bookmark"
+           title="Permalink to LeetCode 028 Implement strStr()">LeetCode 028 Implement strStr()</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Fri 26 June 2020</span>
+<span>| tags: <a href="/tag/leetcode.html">LeetCode</a></span>
+</footer><!-- /.post-info -->      <h2>Problem Description</h2>
+<blockquote>
+<p>Implement strStr().</p>
+<p>Return the index of the first occurrence of needle in haystack, or -1 if needle is not part of haystack.</p>
+</blockquote>
+<p><a href="https://leetcode.com/problems/implement-strstr/">LeetCode 028 - Implement strStr()</a></p>
+<h2>Solutions</h2>
+<p>KMP can be used for solving it. The core of KMP is the <code>next</code> array that stores the value of where to start again if the match fails.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+    <span class="kt">int</span> <span class="n">strStr</span><span class="p">(</span><span class="n">string</span> <span class="n">haystack</span><span class="p">,</span> <span class="n">string</span> <span class="n">needle</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">next</span> <span class="o">=</span> <span class="n">getNext</span><span class="p">(</span><span class="n">needle</span><span class="p">);</span>
+        <span class="kt">int</span> <span class="n">h</span> <span class="o">=</span> <span class="n">haystack</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">n</span> <span class="o">=</span> <span class="n">needle</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+        <span class="kt">int</span> <span class="n">ptr</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">h</span> <span class="o">&amp;&amp;</span> <span class="n">ptr</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// start matching</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ptr</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="o">||</span> <span class="n">haystack</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">needle</span><span class="p">[</span><span class="n">ptr</span><span class="p">])</span> <span class="p">{</span>
+                <span class="o">++</span> <span class="n">ptr</span><span class="p">;</span>
+                <span class="o">++</span> <span class="n">i</span><span class="p">;</span>
+            <span class="c1">// once match fails, move the ptr back</span>
+            <span class="c1">// this is where the next array wo</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="n">ptr</span> <span class="o">=</span> <span class="n">next</span><span class="p">[</span><span class="n">ptr</span><span class="p">];</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">ptr</span> <span class="o">==</span> <span class="n">n</span> <span class="o">?</span> <span class="n">i</span><span class="o">-</span><span class="nl">n</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="k">private</span><span class="o">:</span>
+    <span class="cm">/*</span>
+<span class="cm">        a  b  a  b  a  c</span>
+<span class="cm">        0  0  1  2  3  0</span>
+<span class="cm">next   -1  0  0  1  2  3</span>
+<span class="cm">    */</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">getNext</span><span class="p">(</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">needle</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">next</span><span class="p">(</span><span class="n">needle</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+        <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ptr</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">ptr</span> <span class="o">&lt;</span> <span class="n">needle</span><span class="p">.</span><span class="n">size</span><span class="p">())</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">val</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="o">||</span> <span class="n">needle</span><span class="p">[</span><span class="n">ptr</span><span class="p">]</span> <span class="o">==</span> <span class="n">needle</span><span class="p">[</span><span class="n">val</span><span class="p">])</span> <span class="p">{</span>
+                <span class="n">next</span><span class="p">[</span><span class="o">++</span><span class="n">ptr</span><span class="p">]</span> <span class="o">=</span> <span class="o">++</span><span class="n">val</span><span class="p">;</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="n">ptr</span> <span class="o">=</span> <span class="n">next</span><span class="p">[</span><span class="n">ptr</span><span class="p">];</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">next</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p>It turns out that some of the cumbersome if statements are not necessary once we rule out the extreme case (INT_MIN/-1).</p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>

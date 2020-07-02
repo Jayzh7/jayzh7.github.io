@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>Interview questions - programming language details</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li><a href="/category/leetcode.html">LeetCode</a></li>
+                    <li class="active"><a href="/category/notes.html">Notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/interview-questions-programming-language-details.html" rel="bookmark"
+           title="Permalink to Interview questions - programming language details">Interview questions - programming language details</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Mon 29 June 2020</span>
+<span>| tags: <a href="/tag/cs.html">CS</a></span>
+</footer><!-- /.post-info -->      <h1>C++</h1>
+<hr>
+<h2>Macros</h2>
+<p>Macro calls will be replaced with the processed copy of the body, which is called <strong>expansion</strong> of the macro call. It is faster than function calls because it does not generate actual function calls.</p>
+<p>Two types of macros
+* Object-like macros
+* function-like macros</p>
+<p>Macros must be used with care. In the following example, the <code>++a</code>, <code>++b</code> expression will be evaluated multiple times in the macro causing unexpected results.</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#define getrandom(min, max) \</span>
+<span class="cp">    ((rand()%(int)(((max)+1)-(min)))+min)</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="n">b</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+<span class="n">getrandom</span><span class="p">(</span><span class="o">++</span><span class="n">a</span><span class="p">,</span> <span class="o">++</span><span class="n">b</span><span class="p">);</span>
+</code></pre></div>
+
+
+<h2>inline functions</h2>
+<p>A function defined in the body of a class declaration is an inline function. A class's member function defined outside the class definition can also be declared inline by using <code>inline</code> keyword.</p>
+<h3>Purpose</h3>
+<ol>
+<li>It serves as a compiler directive so that the compiler will substitute function call with the function code as <strong>inline expansion</strong>, thereby saving the overhead of a function call.</li>
+</ol>
+<blockquote>
+<p>When a function is called, the following steps are usually taken
+1. argument values copied to the stack or special registers.
+2. A return address is created and stored on the stack or to a register.
+3. The program branches to the function.
+4. A stack frame is setup for the local variables of the function
+5. At the end of function, the stack frame is torn dowm.
+6. The returned address is retrieved and the pc goes back to that address.</p>
+</blockquote>
+<ol>
+<li>
+<p>Help compiler for better optimization (calculations inside inline function may be reused by the body which is not possible for a function call).</p>
+</li>
+<li>
+<p>More advantages provided by converting a function call to a block of code see <a href="https://www.drdobbs.com/the-new-c-inline-functions/184401540">here</a>.</p>
+</li>
+</ol>
+<h3>Disadvantages</h3>
+<p>By <strong>inline expansion</strong>, the size of program code gets larger, which can lead to more page faults and cache misses.</p>
+<h3>Advantage of inline functions over macros</h3>
+<ul>
+<li>type safety. Inline functions are subject to the same type checking as normal functions.</li>
+<li>Correct handling of arguments that have side effects. Inline functions evaluate the expressions supplied as arguments before the function body is entered.</li>
+</ul>
+<h1>Memory in C</h1>
+<p>There are three types of segments:</p>
+<ul>
+<li>Code segment, <code>text</code>, where the compiled program sits in memory that is typically read-only.</li>
+<li>Uninitialized data segment, <code>bss</code>, where zero-initialized global and static variables are stored.</li>
+<li>Data segment, <code>data</code>, where initialized global and static variables are stored.</li>
+<li>Heap segment, <code>heap</code>, where dynamically allocated variables are stored.</li>
+<li>Stack segment, where local variables are stored.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="n">high____________</span>
+    <span class="o">|</span>           <span class="o">|</span>
+    <span class="o">|</span><span class="n">___________</span><span class="o">|</span>
+    <span class="o">|</span>  <span class="n">stack</span>    <span class="o">|</span>
+    <span class="o">|</span><span class="c1">-----------|</span>
+    <span class="o">|</span>    <span class="o">|</span>      <span class="o">|</span>
+    <span class="o">|</span>   <span class="err">\</span><span class="o">|/</span>     <span class="o">|</span>
+    <span class="o">|</span>           <span class="o">|</span>
+    <span class="o">|</span>   <span class="o">/|</span><span class="err">\</span>     <span class="o">|</span>
+    <span class="o">|</span>    <span class="o">|</span>      <span class="o">|</span>
+    <span class="o">|</span><span class="c1">-----------|</span>
+    <span class="o">|</span>   <span class="n">heap</span>    <span class="o">|</span>
+    <span class="o">|</span><span class="n">___________</span><span class="o">|</span>
+    <span class="o">|</span>   <span class="n">bss</span>     <span class="o">|</span>
+    <span class="o">|</span><span class="n">___________</span><span class="o">|</span>
+    <span class="o">|</span>   <span class="k">data</span>    <span class="o">|</span>
+    <span class="o">|</span><span class="n">___________</span><span class="o">|</span>
+    <span class="o">|</span>   <span class="nb">text</span>    <span class="o">|</span>
+<span class="n">low</span> <span class="o">|</span><span class="n">___________</span><span class="o">|</span>
+</code></pre></div>
+
+
+<h1>References</h1>
+<p><a href="https://www.drdobbs.com/the-new-c-inline-functions/184401540">The new C: inline functions | Dr Dobb's</a>
+<a href="https://en.wikipedia.org/wiki/Inline_function">Inline function - Wikipedia</a></p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>
