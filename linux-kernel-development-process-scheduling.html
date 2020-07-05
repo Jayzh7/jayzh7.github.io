@@ -17,7 +17,7 @@
     
                         <li><a href="/pages/about-me.html">about me</a></li>
                     <li><a href="/category/leetcode.html">LeetCode</a></li>
-                    <li class="active"><a href="/category/notes.html">Notes</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
                     <li><a href="/category/other.html">Other</a></li>
                 </ul>
                 </nav>
@@ -154,7 +154,7 @@ timeslice too long-&gt; high latency</p>
 <h3>Time accounting</h3>
 <p>All process scheduler must account for the time that a process runs.</p>
 <h4>The scheduler entity structure</h4>
-<div class="highlight"><pre><span></span><code><span class="k">struct</span> <span class="n">sched_entity</span> <span class="p">{</span>
+<div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">sched_entity</span> <span class="p">{</span>
     <span class="cm">/* For load-balancing: */</span>
     <span class="k">struct</span> <span class="n">load_weight</span>      <span class="n">load</span><span class="p">;</span>
     <span class="kt">unsigned</span> <span class="kt">long</span>           <span class="n">runnable_weight</span><span class="p">;</span>
@@ -173,14 +173,14 @@ timeslice too long-&gt; high latency</p>
     <span class="c1">// ...</span>
     <span class="c1">// More config specific variables </span>
 <span class="p">}</span>
-</code></pre></div>
+</pre></div>
 
 
 <p>CFS keeps the account for the time that each process runs in a <em>scheduler entity structure</em>, <code>struct sched_entity</code>, defined in <code>&lt;linux/sched.h&gt;</code>. This structure is embedded in the <em>process descriptor</em>, <code>struct task_struct</code> as a member named <code>se</code>.</p>
 <h4>The virtual runtime</h4>
 <p>The <code>vruntime</code> variable stores the <code>virtual runtime</code> of a process which is the actual runtime normalized by the number of runnable processes. CFS uses it to account for hong long it has run and how much longer it ought to run.</p>
 <p>The function <code>update_curr()</code>, defined in <code>kernel/sched/fair.c</code>, manages the accounting:</p>
-<div class="highlight"><pre><span></span><code><span class="cm">/*</span>
+<div class="highlight"><pre><span></span><span class="cm">/*</span>
 <span class="cm"> * Update the current task&#39;s runtime statistics.</span>
 <span class="cm"> */</span>
 <span class="k">static</span> <span class="kt">void</span> <span class="nf">update_curr</span><span class="p">(</span><span class="k">struct</span> <span class="n">cfs_rq</span> <span class="o">*</span><span class="n">cfs_rq</span><span class="p">)</span>  
@@ -218,7 +218,7 @@ timeslice too long-&gt; high latency</p>
 
     <span class="n">account_cfs_rq_runtime</span><span class="p">(</span><span class="n">cfs_rq</span><span class="p">,</span> <span class="n">delta_exec</span><span class="p">);</span>
 <span class="p">}</span>
-</code></pre></div>
+</pre></div>
 
 
 <p>A few related structures:</p>
@@ -237,7 +237,7 @@ timeslice too long-&gt; high latency</p>
 <p>However, how to implement this function effectively is not simple. CFS uses a <code>red-black tree</code> to manage the list of runnable processes so that the task with smallest <code>vruntime</code> can be found in O(1) time.</p>
 <h3>Picking the next task</h3>
 <p>Finding the smallest node in a red-black tree takes O(logN). The function that performs the selection is <code>__pick_next_entity()</code> defined in <code>kernel/sched/fair.c</code>. </p>
-<div class="highlight"><pre><span></span><code><span class="k">static</span> <span class="k">struct</span> <span class="n">sched_entity</span> <span class="o">*</span><span class="nf">__pick_next_entity</span><span class="p">(</span><span class="k">struct</span> <span class="n">sched_entity</span> <span class="o">*</span><span class="n">se</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="k">static</span> <span class="k">struct</span> <span class="n">sched_entity</span> <span class="o">*</span><span class="nf">__pick_next_entity</span><span class="p">(</span><span class="k">struct</span> <span class="n">sched_entity</span> <span class="o">*</span><span class="n">se</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">struct</span> <span class="n">rb_node</span> <span class="o">*</span><span class="n">next</span> <span class="o">=</span> <span class="n">rb_next</span><span class="p">(</span><span class="o">&amp;</span><span class="n">se</span><span class="o">-&gt;</span><span class="n">run_node</span><span class="p">);</span> <span class="c1">// find the next node of the current running node</span>
 
@@ -246,7 +246,7 @@ timeslice too long-&gt; high latency</p>
 
     <span class="k">return</span> <span class="n">rb_entry</span><span class="p">(</span><span class="n">next</span><span class="p">,</span> <span class="k">struct</span> <span class="n">sched_entity</span><span class="p">,</span> <span class="n">run_node</span><span class="p">);</span>
 <span class="p">}</span>
-</code></pre></div>
+</pre></div>
 
 
 <p>This snippet differs from the version referenced by the book. I hope to go back later.</p>
@@ -256,7 +256,7 @@ timeslice too long-&gt; high latency</p>
 <p>When a process blocks (becomes unrunnable) or terminates (cease to exist), CFS will remove it from the rb-tree. This is done by <code>dequeue_entity()</code>. First, runtime statistics are updated first, then the node is removed by calling a helper function <code>__dequeue_entity()</code>. Lastly, the <code>rb_leftmost</code> cache will be updated and the leftmost node will be updated if the removed process was the leftmost one. </p>
 <h3>The scheduler entry point</h3>
 <p>The main entry point into the process scheduler is the function <code>schedule()</code> defined in <code>kernel/sched.c</code>. Its core is the invocation of <code>pick_next_task()</code> which goes through all scheduler classes and selects the highest prirority process in the highest priority class:</p>
-<div class="highlight"><pre><span></span><code><span class="k">static</span> <span class="kr">inline</span> <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span>
+<div class="highlight"><pre><span></span><span class="k">static</span> <span class="kr">inline</span> <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span>
 <span class="nf">pick_next_task</span><span class="p">(</span><span class="k">struct</span> <span class="n">rq</span> <span class="o">*</span><span class="n">rq</span><span class="p">,</span> <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span><span class="n">prev</span><span class="p">,</span> <span class="k">struct</span> <span class="n">rq_flags</span> <span class="o">*</span><span class="n">rf</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">const</span> <span class="k">struct</span> <span class="n">sched_class</span> <span class="o">*</span><span class="n">class</span><span class="p">;</span>
@@ -291,7 +291,7 @@ timeslice too long-&gt; high latency</p>
 
     <span class="n">BUG</span><span class="p">();</span>
 <span class="p">}</span>
-</code></pre></div>
+</pre></div>
 
 
 <h3>Sleeping and Waking up</h3>
@@ -307,7 +307,7 @@ timeslice too long-&gt; high latency</p>
 <h3>Wait queues</h3>
 <p>A wait queue is a simple list of processes waiting for an event to occur. When the associated event occurs, the processes on the wait queue are awakened.</p>
 <p>If the task go to sleep <em>after</em> the condition becomes true, the task might sleep indefintely. Therefore, to avoid the race condition, the followings steps should be taken:</p>
-<div class="highlight"><pre><span></span><code><span class="cm">/* ‘q’ is the wait queue we wish to sleep on */</span>
+<div class="highlight"><pre><span></span><span class="cm">/* ‘q’ is the wait queue we wish to sleep on */</span>
     <span class="n">DEFINE_WAIT</span><span class="p">(</span><span class="n">wait</span><span class="p">);</span>
     <span class="n">add_wait_queue</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">wait</span><span class="p">);</span> 
     <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">condition</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* condition is the event that we are waiting for */</span>
@@ -317,7 +317,7 @@ timeslice too long-&gt; high latency</p>
             <span class="n">schedule</span><span class="p">();</span>
         <span class="p">}</span>
     <span class="n">finish_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">q</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">wait</span><span class="p">);</span>
-</code></pre></div>
+</pre></div>
 
 
 <ol>

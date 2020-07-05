@@ -17,7 +17,7 @@
     
                         <li><a href="/pages/about-me.html">about me</a></li>
                     <li><a href="/category/leetcode.html">LeetCode</a></li>
-                    <li class="active"><a href="/category/notes.html">Notes</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
                     <li><a href="/category/other.html">Other</a></li>
                 </ul>
                 </nav>
@@ -105,19 +105,19 @@ Figure 3.3 Flowchart of process states.</p>
 <p>Linux implements are threads as standard process. A thread is merely a process that shares certain resources with other processes. To some other OS like Microsoft Windows, threads are an abstraction to provide a ligher, quicker execution unit.</p>
 <h3>Creating threads</h3>
 <p>Specific flags indicating shared resources will be passed into the <code>clone()</code> system call when creating threads.</p>
-<div class="highlight"><pre><span></span><code><span class="n">clone</span><span class="p">(</span><span class="n">CLONE_VM</span> <span class="o">|</span> <span class="n">CLONE_FS</span> <span class="o">|</span> <span class="n">CLONE_FILES</span> <span class="o">|</span> <span class="n">CLONE_SIGHAND</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-</code></pre></div>
+<div class="highlight"><pre><span></span><span class="n">clone</span><span class="p">(</span><span class="n">CLONE_VM</span> <span class="o">|</span> <span class="n">CLONE_FS</span> <span class="o">|</span> <span class="n">CLONE_FILES</span> <span class="o">|</span> <span class="n">CLONE_SIGHAND</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</pre></div>
 
 
 <p>It means shared address space, filesystem resources, file descriptors, and signal handlers.</p>
 <p>In contrast, a normal process <code>fork()</code> will be</p>
-<div class="highlight"><pre><span></span><code><span class="n">clone</span><span class="p">(</span><span class="n">SIGCHLD</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-</code></pre></div>
+<div class="highlight"><pre><span></span><span class="n">clone</span><span class="p">(</span><span class="n">SIGCHLD</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</pre></div>
 
 
 <p>and <code>vfork()</code> will be</p>
-<div class="highlight"><pre><span></span><code><span class="n">clone</span><span class="p">(</span><span class="n">CLONE_VFORK</span> <span class="o">|</span> <span class="n">CLONE_VM</span> <span class="o">|</span> <span class="n">SIGCHLD</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-</code></pre></div>
+<div class="highlight"><pre><span></span><span class="n">clone</span><span class="p">(</span><span class="n">CLONE_VFORK</span> <span class="o">|</span> <span class="n">CLONE_VM</span> <span class="o">|</span> <span class="n">SIGCHLD</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</pre></div>
 
 
 <p>More <code>clone()</code> related flags are defined in <code>&lt;linux/sched.h&gt;</code>.</p>

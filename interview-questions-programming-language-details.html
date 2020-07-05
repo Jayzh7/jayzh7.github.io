@@ -17,7 +17,7 @@
     
                         <li><a href="/pages/about-me.html">about me</a></li>
                     <li><a href="/category/leetcode.html">LeetCode</a></li>
-                    <li class="active"><a href="/category/notes.html">Notes</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
                     <li><a href="/category/other.html">Other</a></li>
                 </ul>
                 </nav>
@@ -42,13 +42,13 @@
 * Object-like macros
 * function-like macros</p>
 <p>Macros must be used with care. In the following example, the <code>++a</code>, <code>++b</code> expression will be evaluated multiple times in the macro causing unexpected results.</p>
-<div class="highlight"><pre><span></span><code><span class="cp">#define getrandom(min, max) \</span>
+<div class="highlight"><pre><span></span><span class="cp">#define getrandom(min, max) \</span>
 <span class="cp">    ((rand()%(int)(((max)+1)-(min)))+min)</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 <span class="n">b</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
 <span class="n">getrandom</span><span class="p">(</span><span class="o">++</span><span class="n">a</span><span class="p">,</span> <span class="o">++</span><span class="n">b</span><span class="p">);</span>
-</code></pre></div>
+</pre></div>
 
 
 <h2>inline functions</h2>
@@ -81,6 +81,16 @@
 <li>type safety. Inline functions are subject to the same type checking as normal functions.</li>
 <li>Correct handling of arguments that have side effects. Inline functions evaluate the expressions supplied as arguments before the function body is entered.</li>
 </ul>
+<h2>Virtual functions</h2>
+<p>Every class that uses virtual functions is given a unique virtual table. The table is a static array that the compiler sets up at compile time. It contains one entry for each virtual function that can be called by objects of the class.</p>
+<p><img alt="vtable" src="/images/VTable.gif"></p>
+<ul>
+<li>Each object has a hidden virtual pointer that points to the virtual table.</li>
+<li>Each entry of the table is filled with the most-derived function that the class of the object can call.</li>
+</ul>
+<h2>Early binding and late binding</h2>
+<p>Early binding means the compiler knows the address of the function to call at compile time. </p>
+<p>For some programs, it is not possible to know which function to call at compile time, only until runtime. One way to do this is to use function pointers. </p>
 <h1>Memory in C</h1>
 <p>There are three types of segments:</p>
 <ul>
@@ -90,7 +100,7 @@
 <li>Heap segment, <code>heap</code>, where dynamically allocated variables are stored.</li>
 <li>Stack segment, where local variables are stored.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="n">high____________</span>
+<div class="highlight"><pre><span></span><span class="n">high____________</span>
     <span class="o">|</span>           <span class="o">|</span>
     <span class="o">|</span><span class="n">___________</span><span class="o">|</span>
     <span class="o">|</span>  <span class="n">stack</span>    <span class="o">|</span>
@@ -109,12 +119,29 @@
     <span class="o">|</span><span class="n">___________</span><span class="o">|</span>
     <span class="o">|</span>   <span class="nb">text</span>    <span class="o">|</span>
 <span class="n">low</span> <span class="o">|</span><span class="n">___________</span><span class="o">|</span>
-</code></pre></div>
+</pre></div>
 
 
+<h1>Linux</h1>
+<h2>inode</h2>
+<p><strong>inode</strong> (index node) is a data structure in Unix-like file systems. It is used for describing a file-system object such as a file or a directory. Each inode stores disk block(a block usually contains a fixed number(power of 2) of sectors which are commonly 4K bytes) locations of the object's data, and attributes like file type, previlige, ownership, time (create, modify, access), etc.</p>
+<p>There is a map that maps the file name to inode index, with which the inode can be found in the inode array. Note that the inode does not contain file name because the general use case is to identify the inode by file name.</p>
+<h2>Thread vs Process</h2>
+<p>In Linux, <code>fork()</code> creates new processes. These new processes are called child processes and they intially share all the segments like <code>text</code>, <code>stack</code>, <code>heap</code>, etc until child tries to make changes to them.</p>
+<h1>Database</h1>
+<h2>Pessimistic and Optimistic locking</h2>
+<h3>Optimistic locking</h3>
+<p>When you read a record, take note of the 'version number'(could also be timestamp, entire state of the row itself, checksums, etc) and check that the version has not been changed before writing back.</p>
+<p>The transaction will be aborted if the record is dirty (different version).</p>
+<p>It is the most appilcable to <strong>high-volumn systems</strong> and <strong>three-tier architectures</strong> where connection is not necessary to be kept.</p>
+<h3>Pssimistic locking</h3>
+<p>Lock the record for exclusive use until transaction completes. It has better integrity but is vulnerable to <strong>Deadlocks</strong>.</p>
 <h1>References</h1>
-<p><a href="https://www.drdobbs.com/the-new-c-inline-functions/184401540">The new C: inline functions | Dr Dobb's</a>
-<a href="https://en.wikipedia.org/wiki/Inline_function">Inline function - Wikipedia</a></p>
+<p><a href="https://www.drdobbs.com/the-new-c-inline-functions/184401540">The new C: inline functions | Dr Dobb's</a><br>
+<a href="https://en.wikipedia.org/wiki/Inline_function">Inline function - Wikipedia</a><br>
+<a href="https://en.wikipedia.org/wiki/Inode">inode - Wikipedia</a><br>
+<a href="https://stackoverflow.com/questions/129329/optimistic-vs-pessimistic-locking">Optimistic vs. Pessimistic locking - Stackoverflow</a><br>
+<a href="https://www.thegeekstuff.com/2013/11/linux-process-and-threads/#:~:text=Linux%20Threads%20vs%20Light%20Weight,known%20as%20multi%2Dthreaded%20process.&amp;text=Each%20thread%20is%20viewed%20by,different%20from%20other%20normal%20processes.">What are Linux Processes, Threads, Light Weight Processes, and Process State - THE GEEK STUFF</a>  </p>
     </div><!-- /.entry-content -->
 
   </article>

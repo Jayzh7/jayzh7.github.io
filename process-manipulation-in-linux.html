@@ -17,7 +17,7 @@
     
                         <li><a href="/pages/about-me.html">about me</a></li>
                     <li><a href="/category/leetcode.html">LeetCode</a></li>
-                    <li class="active"><a href="/category/notes.html">Notes</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
                     <li><a href="/category/other.html">Other</a></li>
                 </ul>
                 </nav>
@@ -88,8 +88,8 @@
 <ul>
 <li>display top running processes by memory usage</li>
 </ul>
-<div class="highlight"><pre><span></span><code>ps -eo pid,ppid,cmd,%mem,%cpu --sort<span class="o">=</span>-%mem <span class="p">|</span> head
-</code></pre></div>
+<div class="highlight"><pre><span></span>ps -eo pid,ppid,cmd,%mem,%cpu --sort<span class="o">=</span>-%mem <span class="p">|</span> head
+</pre></div>
 
 
 <h3>top</h3>
@@ -101,15 +101,15 @@
 <ol>
 <li>Exit after specific repetition. By default, it keeps refreshing until you press <code>q</code>.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>    top -n <span class="m">10</span>
-</code></pre></div>
+<div class="highlight"><pre><span></span>    top -n <span class="m">10</span>
+</pre></div>
 
 
 <ol>
 <li>Only display processes belong to a specific user.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>    top -u user_id
-</code></pre></div>
+<div class="highlight"><pre><span></span>    top -u user_id
+</pre></div>
 
 
 <ol>
@@ -148,7 +148,7 @@ or</li>
 <p>If a command is terminated by the control operator &amp;, the shell executes the command in the background in a subshell. The shell does not wait for the command to finish, and the return status is 0.</p>
 </blockquote>
 <p>Once you've started a job in the foreground, you can also send it to the background by suspending it first using <code>Ctrl+Z</code>, and continue it in the background by <code>bg</code> command. To bring it foregound againn, use command <code>fg %job_id</code>, the job id in which <code>job_id</code> can be found by using <code>jobs</code>. It is worth noting that the process will still output to the terminal even it is in the background and it is going to be messy if you try to type a command when the output is frequent (your input will be mixed with the process output).</p>
-<div class="highlight"><pre><span></span><code>qsh@ghildes&gt; sleep <span class="m">100</span>
+<div class="highlight"><pre><span></span>qsh@ghildes&gt; sleep <span class="m">100</span>
 <span class="o">(</span>Ctrl+Z<span class="o">)</span>
 <span class="o">[</span><span class="m">1</span><span class="o">]</span>+  Stopped                 sleep <span class="m">100</span>
 qsh@ghildes&gt; <span class="nb">jobs</span>
@@ -157,23 +157,23 @@ qsh@ghildes&gt; <span class="nb">bg</span> %1
 <span class="o">[</span><span class="m">1</span><span class="o">]</span>+ sleep <span class="m">100</span> <span class="p">&amp;</span>
 qsh@ghildes&gt; <span class="nb">fg</span> %1
 sleep <span class="m">100</span>
-</code></pre></div>
+</pre></div>
 
 
 <p>If only one job in the bg/fg, job id can be omitted.  </p>
 <p>Delete a suspended process by <code>kill</code> command followed by job id. Delete a process running in the foreground can be done by a simple <code>Ctrl+C</code>. Also, process can be killed by providing its PID.</p>
-<div class="highlight"><pre><span></span><code>qsh@ghildes&gt; xclock <span class="p">&amp;</span>
+<div class="highlight"><pre><span></span>qsh@ghildes&gt; xclock <span class="p">&amp;</span>
 <span class="o">[</span><span class="m">1</span><span class="o">]</span> <span class="m">31176</span>
 qsh@ghildes&gt; <span class="nb">kill</span> -9 <span class="m">31176</span>
 <span class="o">[</span><span class="m">1</span><span class="o">]</span>+  Killed                  xclock
-</code></pre></div>
+</pre></div>
 
 
-<div class="highlight"><pre><span></span><code>qsh@ghildes&gt; xclock <span class="p">&amp;</span>
+<div class="highlight"><pre><span></span>qsh@ghildes&gt; xclock <span class="p">&amp;</span>
 <span class="o">[</span><span class="m">1</span><span class="o">]</span> <span class="m">32012</span>
 qsh@ghildes&gt; <span class="nb">kill</span> %1
 <span class="o">[</span><span class="m">1</span><span class="o">]</span>+  Terminated              xclock
-</code></pre></div>
+</pre></div>
 
 
 <h2>Reference</h2>

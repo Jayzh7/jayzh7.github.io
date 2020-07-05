@@ -17,7 +17,7 @@
     
                         <li><a href="/pages/about-me.html">about me</a></li>
                     <li class="active"><a href="/category/leetcode.html">LeetCode</a></li>
-                    <li><a href="/category/notes.html">Notes</a></li>
+                    <li><a href="/category/notes.html">notes</a></li>
                     <li><a href="/category/other.html">Other</a></li>
                 </ul>
                 </nav>
@@ -42,7 +42,7 @@
 <h3>1, dp</h3>
 <p><code>dp(i,j) = (dp(i+1,j-1) &amp;&amp; (s[i] == s[j])) (1)</code><br>
 <code>dp(i,i+1) = (s(i) == s(i+1))              (2)</code></p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
 <span class="k">public</span><span class="o">:</span>
     <span class="n">string</span> <span class="n">longestPalindrome</span><span class="p">(</span><span class="n">string</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span>
@@ -77,12 +77,12 @@
         <span class="k">return</span> <span class="n">s</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="n">max_start</span><span class="p">,</span> <span class="n">max_len</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
     <span class="p">}</span>
 <span class="p">};</span>
-</code></pre></div>
+</pre></div>
 
 
 <h3>2, Center expansion</h3>
 <p>Use every char and every two consecutive chars as centers and expand as long as possible.</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
 <span class="k">public</span><span class="o">:</span>
     <span class="n">string</span> <span class="n">longestPalindrome</span><span class="p">(</span><span class="n">string</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
         <span class="kt">int</span> <span class="n">res_l</span><span class="p">,</span> <span class="n">res_r</span><span class="p">;</span>
@@ -114,7 +114,7 @@
         <span class="k">return</span> <span class="n">temp_max</span><span class="p">;</span>
     <span class="p">}</span>
 <span class="p">};</span>
-</code></pre></div>
+</pre></div>
     </div><!-- /.entry-content -->
 
   </article>

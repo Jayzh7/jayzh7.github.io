@@ -17,7 +17,7 @@
     
                         <li><a href="/pages/about-me.html">about me</a></li>
                     <li><a href="/category/leetcode.html">LeetCode</a></li>
-                    <li class="active"><a href="/category/notes.html">Notes</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
                     <li><a href="/category/other.html">Other</a></li>
                 </ul>
                 </nav>
@@ -37,16 +37,16 @@
 </footer><!-- /.post-info -->      <h2>Motivation</h2>
 <p>As a server, there are usually more than 1 connection to deal with. A lot of file descriptors (representing the connection) need to be monitored and responded. Conventional multithread does not work well as it involves costly context switch.</p>
 <p>A simple loop would be too slow and inefficient.</p>
-<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="nl">open_connections</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="nl">open_connections</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">has_new_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">:</span>
         <span class="n">process_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</code></pre></div>
+</pre></div>
 
 
 <p>Linux offered three ways to monitor the <code>fd</code>s: <code>select</code>, <code>poll</code>, <code>epoll</code>.</p>
 <h2>Select &amp; Poll</h2>
 <p><code>select</code> accepts a list of file descriptors to get information about, and returns the information about which <code>fd</code> to write or read.</p>
-<div class="highlight"><pre><span></span><code><span class="c1">// sys call for __select__</span>
+<div class="highlight"><pre><span></span><span class="c1">// sys call for __select__</span>
 <span class="cm">/********************</span>
 <span class="cm">inp:  fd for input</span>
 <span class="cm">outp: fd for output      </span>
@@ -54,7 +54,7 @@
 <span class="cm">tvp:  timeout value</span>
 <span class="cm">*********************/</span>
 <span class="n">SYSCALL_DEFINE5</span><span class="p">(</span><span class="n">select</span><span class="p">,</span> <span class="kt">int</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">fd_set</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">fd_set</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">fd_set</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">exp</span><span class="p">,</span> <span class="k">struct</span> <span class="n">timeval</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">tvp</span><span class="p">)</span>
-</code></pre></div>
+</pre></div>
 
 
 <p><a href="https://elixir.bootlin.com/linux/latest/source/include/uapi/linux/posix_types.h#L26"><code>fd_set</code></a> is an array of unsigned long integer storing bit values indicating if there is data to write or read. The default size is 1024 bits which means it supports monitoring at most 1024 tasks at the same time. </p>
@@ -63,7 +63,7 @@
 2. 1024 tasks at most (can be modified but leads to slow performance).
 3. the cost of copying <code>fd</code>s from user space to kernel space is high.
 4. requires iterating through the whole <code>fd</code> list after returning which is <code>O(n)</code> complexity.</p>
-<div class="highlight"><pre><span></span><code><span class="c1">// structure of `pollfd`.</span>
+<div class="highlight"><pre><span></span><span class="c1">// structure of `pollfd`.</span>
 <span class="k">struct</span> <span class="n">pollfd</span> <span class="p">{</span>
     <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
     <span class="kt">short</span> <span class="n">events</span><span class="p">;</span>  <span class="c1">// set events to monitor, can be POLLIN, POLLOUT, etc. </span>
@@ -78,7 +78,7 @@
 <span class="cm">*********************/</span>
 <span class="n">SYSCALL_DEFINE5</span><span class="p">(</span><span class="n">ppoll</span><span class="p">,</span> <span class="k">struct</span> <span class="n">pollfd</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">ufds</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span><span class="p">,</span> <span class="n">nfds</span><span class="p">,</span> <span class="k">struct</span> <span class="n">timespec</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">tsp</span><span class="p">,</span> <span class="k">const</span> <span class="kt">sigset_t</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">sigmask</span><span class="p">,</span>
 <span class="kt">size_t</span><span class="p">,</span> <span class="n">sigsetsize</span><span class="p">)</span>
-</code></pre></div>
+</pre></div>
 
 
 <p>Instead of using bitmaps, <code>poll</code> accepts an array of <code>pollfd</code> to monitor the specific tasks. This is especially useful when the <code>fd</code>s you want to monitor is sparse because you don't need to go through all the <code>fd</code>s every time but only iterate through the specific ones. Also, instead of having only 3 set of events like <code>select</code> (read, write, exception), the <code>events</code> variable in <code>pollfd</code> allows you to set events you'd like to monitor. See a comprehensive list of events <a href="see https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/poll.h">here</a>.</p>
@@ -94,7 +94,7 @@ edge-triggered: triggers when an empty receive buffer received data and when a f
 <ol>
 <li>related strcuts</li>
 </ol>
-<div class="highlight"><pre><span></span><code>    <span class="k">typedef</span> <span class="k">union</span> <span class="n">epoll_data</span>
+<div class="highlight"><pre><span></span>    <span class="k">typedef</span> <span class="k">union</span> <span class="n">epoll_data</span>
     <span class="p">{</span>
     <span class="kt">void</span> <span class="o">*</span><span class="n">ptr</span><span class="p">;</span>
     <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
@@ -107,31 +107,31 @@ edge-triggered: triggers when an empty receive buffer received data and when a f
     <span class="kt">uint32_t</span> <span class="n">events</span><span class="p">;</span>  <span class="cm">/* Epoll events */</span>
     <span class="n">epoll_data_t</span> <span class="n">data</span><span class="p">;</span>    <span class="cm">/* User data variable */</span>
     <span class="p">};</span>
-</code></pre></div>
+</pre></div>
 
 
 <ol>
 <li>call <code>epoll_create</code> to create an <code>epoll</code> and return an id.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>    <span class="kt">int</span> <span class="n">epfd</span> <span class="o">=</span> <span class="n">epoll_create</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
-</code></pre></div>
+<div class="highlight"><pre><span></span>    <span class="kt">int</span> <span class="n">epfd</span> <span class="o">=</span> <span class="n">epoll_create</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+</pre></div>
 
 
 <ol>
 <li>register <code>fd</code>s with <code>epoll_ctl</code>.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>    <span class="k">struct</span> <span class="n">epoll_event</span> <span class="n">ev</span><span class="p">;</span>
+<div class="highlight"><pre><span></span>    <span class="k">struct</span> <span class="n">epoll_event</span> <span class="n">ev</span><span class="p">;</span>
     <span class="n">ev</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">fd</span> <span class="o">=</span> <span class="n">accept</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span> <span class="p">...);</span> <span class="c1">// open a connection</span>
     <span class="n">ev</span><span class="p">.</span><span class="n">events</span>  <span class="o">=</span> <span class="n">EPOLLIN</span><span class="p">;</span> <span class="c1">// register events type</span>
     <span class="c1">//              add fd       </span>
     <span class="n">epoll_ctl</span><span class="p">(</span><span class="n">epfd</span><span class="p">,</span> <span class="n">EPOLL_CTL_ADD</span><span class="p">,</span> <span class="n">ev</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">fd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ev</span><span class="p">);</span>
-</code></pre></div>
+</pre></div>
 
 
 <ol>
 <li>call <code>epoll_wait</code> to wait for updates and iterate through all active events.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>    <span class="k">struct</span> <span class="n">epoll_event</span> <span class="n">events</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span>
+<div class="highlight"><pre><span></span>    <span class="k">struct</span> <span class="n">epoll_event</span> <span class="n">events</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span>
     <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
         <span class="n">nfds</span> <span class="o">=</span> <span class="n">epoll_wait</span><span class="p">(</span><span class="n">epfd</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10000</span><span class="p">);</span>
 
@@ -140,7 +140,7 @@ edge-triggered: triggers when an empty receive buffer received data and when a f
             <span class="n">process</span><span class="p">();</span>
         <span class="p">}</span>
     <span class="p">}</span>
-</code></pre></div>
+</pre></div>
 
 
 <p>The <code>epoll_wait</code> will re-order the <code>fd</code>s such that active ones are at the beginning (this is efficient  due to the implementation of a red-black tree that allows fast O(lgN) insertion and deletion.)</p>

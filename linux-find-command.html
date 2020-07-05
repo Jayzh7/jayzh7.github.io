@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>Linux Find Command</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li><a href="/category/leetcode.html">LeetCode</a></li>
+                    <li class="active"><a href="/category/notes.html">notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/linux-find-command.html" rel="bookmark"
+           title="Permalink to Linux Find Command">Linux Find Command</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Sun 05 July 2020</span>
+<span>| tags: <a href="/tag/linux.html">Linux</a></span>
+</footer><!-- /.post-info -->      <p>Apart from removing or copying files directly using regular expression, <code>find</code> offers more functionalities when searching for files.</p>
+<h1>Command Options</h1>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-name</code> and <code>-iname</code></td>
+<td>find by name (ignore case)</td>
+</tr>
+<tr>
+<td><code>-mindepth</code> and <code>-maxdepth</code></td>
+<td>limit the search depth of directories</td>
+</tr>
+<tr>
+<td><code>-exec</code></td>
+<td>execute commands on the files found</td>
+</tr>
+<tr>
+<td><code>-not</code></td>
+<td>invert the match</td>
+</tr>
+<tr>
+<td><code>-inum</code></td>
+<td>find by inode number</td>
+</tr>
+<tr>
+<td><code>-perm</code></td>
+<td>specify file permissions, like <code>g=r</code>, or <code>755</code></td>
+</tr>
+<tr>
+<td><code>-empty</code></td>
+<td>find empty files</td>
+</tr>
+<tr>
+<td><code>-type</code></td>
+<td>specify file <code>f</code>, directory <code>d</code>, socket files <code>s</code>,</td>
+</tr>
+<tr>
+<td><code>-size</code></td>
+<td>find file by size <code>-100M</code>, less than 100M, <code>+100M</code>, more than 100M</td>
+</tr>
+<tr>
+<td><code>-mmin -n</code></td>
+<td>find files that are modified within <code>n</code> minutes</td>
+</tr>
+<tr>
+<td><code>-mtime -n</code></td>
+<td>find files that are modified within <code>n</code> days (24 hour)</td>
+</tr>
+<tr>
+<td><code>-amin</code>, <code>-atime</code></td>
+<td>similiar to above (note that <code>+</code>, <code>-</code>, and no sign represents more than, within, and exactly)</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>File change time gets updated when the inode of the file changes</p>
+</blockquote>
+<h1>Examples</h1>
+<h2>Find the top 5 big files</h2>
+<div class="highlight"><pre><span></span>find . -type f -exec ls -s <span class="o">{}</span> <span class="se">\;</span> <span class="p">|</span> sort -n -r <span class="p">|</span> head -5
+</pre></div>
+
+
+<h2>Find all empty files in home directory and its sub-directories.</h2>
+<div class="highlight"><pre><span></span>find ~ -type f -empty -maxdepth <span class="m">1</span>
+</pre></div>
+
+
+<h2>Find files which has read permission only to group</h2>
+<div class="highlight"><pre><span></span>find . -perm <span class="nv">g</span><span class="o">=</span>r -type f
+find . -perm <span class="m">040</span> -type f
+</pre></div>
+
+
+<h2>Use more than 1 pair of {} in the same command</h2>
+<h3>add postfix for specific files</h3>
+<div class="highlight"><pre><span></span>find -name <span class="s2">&quot;?abc&quot;</span> -exec mv <span class="o">{}</span> <span class="o">{}</span>.bkup <span class="se">\;</span>
+</pre></div>
+
+
+<h2>Substitute space with underscore in the file name</h2>
+<div class="highlight"><pre><span></span>find . -type f -iname <span class="s2">&quot;*.mp3&quot;</span> -exec rename <span class="s2">&quot;s/ /_/g&quot;</span> <span class="o">{}</span> <span class="se">\;</span>
+</pre></div>
+
+
+<h2>References</h2>
+<p><a href="https://www.thegeekstuff.com/2009/03/15-practical-linux-find-command-examples/"><em>Mommy, I found it! — 15 Practical Linux Find Command Examples</em></a><br>
+<a href="https://www.thegeekstuff.com/2009/06/15-practical-unix-linux-find-command-examples-part-2/"><em>Daddy, I found it!, 15 Awesome Linux Find Command Examples (Part2)</em></a></p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>
