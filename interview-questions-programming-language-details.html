@@ -17,7 +17,7 @@
     
                         <li><a href="/pages/about-me.html">about me</a></li>
                     <li><a href="/category/leetcode.html">LeetCode</a></li>
-                    <li class="active"><a href="/category/notes.html">notes</a></li>
+                    <li class="active"><a href="/category/notes.html">Notes</a></li>
                     <li><a href="/category/other.html">Other</a></li>
                 </ul>
                 </nav>
@@ -36,6 +36,48 @@
 <span>| tags: <a href="/tag/cs.html">CS</a></span>
 </footer><!-- /.post-info -->      <h1>C++</h1>
 <hr>
+<h2>Memory alignment</h2>
+<div class="highlight"><pre><span></span><span class="n">struct</span> <span class="err">{</span>
+    <span class="nb">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span>
+    <span class="n">double</span> <span class="n">b</span><span class="p">;</span>
+    <span class="nb">char</span> <span class="k">c</span><span class="p">;</span>
+<span class="err">}</span><span class="p">;</span>
+</pre></div>
+
+
+<p>The size of the above struct is 24 rather than 20 due to memory alignment. The alignment is based on its largest member which is <code>double</code> (size 8) in this case. Therefore, its size should be multiples of 8 (size of double).</p>
+<h2>Size of objects</h2>
+<p>An object of an empty class has a size of 1. If it has virtual functions, it takes some extra space to store a virtual pointer (8 bytes for 64-bit systems). Static variable, member functions, constructor and destructors are not owned by the object therefore occupying no space for objects.</p>
+<h2>Inheritance and derived class</h2>
+<p>The derived class inherit all contents from the base class, some of which may not be useful leading to data redundancy. Therefore, it must be used with care to avoid heavy cost of copying, constructing and destroying of a derived class object.</p>
+<p>There are three types of inheritance:
++ public inheritance: public and protected members from base class remain the same in the derived class, private members from base class is not inherited.
++ private inheritance: public and protected members from base class go to private in the derived class. 
++ protected inheritance: public and protected members from base class go to protected.</p>
+<p>Protected members are accessible to friends and member functions in a derived class.</p>
+<h2>Override, overwrite, and overload</h2>
+<h2>singleton</h2>
+<p>There is only one instance of the class. The instance can only be accessed by the static pointer obtained by calling a public member function.</p>
+<div class="highlight"><pre><span></span><span class="n">Class</span> <span class="n">CSingleton</span> <span class="p">{</span>
+<span class="k">private</span><span class="o">:</span>
+    <span class="n">CSingleton</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// constructor</span>
+    <span class="p">}</span>
+    <span class="k">static</span> <span class="n">CSingleton</span> <span class="o">*</span><span class="n">m_pInstance</span><span class="p">;</span>
+<span class="k">public</span><span class="o">:</span>
+    <span class="n">CSingleton</span><span class="o">*</span> <span class="n">getInstance</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">m_pInstance</span><span class="p">)</span>
+            <span class="n">m_pInstance</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CSingleton</span><span class="p">();</span>
+
+        <span class="k">return</span> <span class="n">m_pInstance</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// initialize the static instance to NULL</span>
+<span class="n">CSingleton</span><span class="o">*</span> <span class="n">CSingleton</span><span class="o">::</span><span class="n">m_pInstance</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</pre></div>
+
+
 <h2>Macros</h2>
 <p>Macro calls will be replaced with the processed copy of the body, which is called <strong>expansion</strong> of the macro call. It is faster than function calls because it does not generate actual function calls.</p>
 <p>Two types of macros
@@ -136,6 +178,7 @@
 <p>It is the most appilcable to <strong>high-volumn systems</strong> and <strong>three-tier architectures</strong> where connection is not necessary to be kept.</p>
 <h3>Pssimistic locking</h3>
 <p>Lock the record for exclusive use until transaction completes. It has better integrity but is vulnerable to <strong>Deadlocks</strong>.</p>
+<h1>Compiler</h1>
 <h1>References</h1>
 <p><a href="https://www.drdobbs.com/the-new-c-inline-functions/184401540">The new C: inline functions | Dr Dobb's</a><br>
 <a href="https://en.wikipedia.org/wiki/Inline_function">Inline function - Wikipedia</a><br>

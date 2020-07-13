@@ -17,7 +17,7 @@
     
                         <li><a href="/pages/about-me.html">about me</a></li>
                     <li><a href="/category/leetcode.html">LeetCode</a></li>
-                    <li class="active"><a href="/category/notes.html">notes</a></li>
+                    <li class="active"><a href="/category/notes.html">Notes</a></li>
                     <li><a href="/category/other.html">Other</a></li>
                 </ul>
                 </nav>
@@ -35,7 +35,7 @@
         <span>Tue 23 June 2020</span>
 <span>| tags: <a href="/tag/linux.html">Linux</a></span>
 </footer><!-- /.post-info -->      <h2>Motivation</h2>
-<p>As a server, there are usually more than 1 connection to deal with. A lot of file descriptors (representing the connection) need to be monitored and responded. Conventional multithread does not work well as it involves costly context switch.</p>
+<p>As a server, there are usually more than 1 connection to deal with. A lot of <a href="https://en.wikipedia.org/wiki/File_descriptor">file descriptors</a>(representing the connection) need to be monitored and responded. Conventional multithread does not work well as it involves costly context switch.</p>
 <p>A simple loop would be too slow and inefficient.</p>
 <div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="nl">open_connections</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">has_new_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">:</span>
@@ -45,7 +45,10 @@
 
 <p>Linux offered three ways to monitor the <code>fd</code>s: <code>select</code>, <code>poll</code>, <code>epoll</code>.</p>
 <h2>Select &amp; Poll</h2>
-<p><code>select</code> accepts a list of file descriptors to get information about, and returns the information about which <code>fd</code> to write or read.</p>
+<h3>select</h3>
+<p><code>select</code> accepts a list of file descriptors to get information about, and returns the information about which <code>fd</code> to write or read. See source code on:<br>
+- Github - <a href="https://github.com/torvalds/linux/blob/v4.10/fs/select.c#L634-L656"><code>select</code></a>, <a href="https://github.com/torvalds/linux/blob/v4.10/fs/select.c#L404-L542"><code>do_select</code></a>
+- Bootlin - <a href="https://elixir.bootlin.com/linux/latest/source/fs/select.c#L722"><code>select</code></a>, <a href="https://elixir.bootlin.com/linux/latest/source/fs/select.c#L728"><code>do_select</code></a></p>
 <div class="highlight"><pre><span></span><span class="c1">// sys call for __select__</span>
 <span class="cm">/********************</span>
 <span class="cm">inp:  fd for input</span>
@@ -60,9 +63,14 @@
 <p><a href="https://elixir.bootlin.com/linux/latest/source/include/uapi/linux/posix_types.h#L26"><code>fd_set</code></a> is an array of unsigned long integer storing bit values indicating if there is data to write or read. The default size is 1024 bits which means it supports monitoring at most 1024 tasks at the same time. </p>
 <p>Cons of <code>select</code>:
 1. the sets need to be re-initialized every time before being passed to <code>select</code> and cannot be reused. 
-2. 1024 tasks at most (can be modified but leads to slow performance).
+2. at most 1024 tasks (can be modified but leads to slow performance).
 3. the cost of copying <code>fd</code>s from user space to kernel space is high.
 4. requires iterating through the whole <code>fd</code> list after returning which is <code>O(n)</code> complexity.</p>
+<h3>poll</h3>
+<p>Instead of using bitmaps, <code>poll</code> accepts an array of <code>pollfd</code> to monitor the specific tasks. This is especially useful when the <code>fd</code>s you want to monitor is sparse because you don't need to go through all the <code>fd</code>s every time but only iterate through the specific ones. Also, instead of having only 3 set of events like <code>select</code> (read, write, exception), the <code>events</code> variable in <code>pollfd</code> allows you to set events you'd like to monitor. See a comprehensive list of events <a href="see https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/poll.h">here</a>.  Source code can be found at:</p>
+<ul>
+<li><a href="https://elixir.bootlin.com/linux/latest/source">Bootlin</a>, definition of <a href="https://elixir.bootlin.com/linux/latest/source/fs/select.c#L1081"><code>ppoll</code></a> and <a href="https://elixir.bootlin.com/linux/latest/source/fs/select.c#L960"><code>do_sys_poll</code></a>.</li>
+</ul>
 <div class="highlight"><pre><span></span><span class="c1">// structure of `pollfd`.</span>
 <span class="k">struct</span> <span class="n">pollfd</span> <span class="p">{</span>
     <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
@@ -81,7 +89,6 @@
 </pre></div>
 
 
-<p>Instead of using bitmaps, <code>poll</code> accepts an array of <code>pollfd</code> to monitor the specific tasks. This is especially useful when the <code>fd</code>s you want to monitor is sparse because you don't need to go through all the <code>fd</code>s every time but only iterate through the specific ones. Also, instead of having only 3 set of events like <code>select</code> (read, write, exception), the <code>events</code> variable in <code>pollfd</code> allows you to set events you'd like to monitor. See a comprehensive list of events <a href="see https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/poll.h">here</a>.</p>
 <p>Cons of <code>select</code>:<br>
 3 &amp; 4 of <code>poll</code>.</p>
 <h2>epoll</h2>

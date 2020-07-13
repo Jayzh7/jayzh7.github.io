@@ -11,6 +11,58 @@ tags: CS
 
 ___
 
+## Memory alignment
+
+```
+struct {
+    int a[5];
+    double b;
+    char c;
+};
+```
+The size of the above struct is 24 rather than 20 due to memory alignment. The alignment is based on its largest member which is `double` (size 8) in this case. Therefore, its size should be multiples of 8 (size of double).
+
+## Size of objects
+
+An object of an empty class has a size of 1. If it has virtual functions, it takes some extra space to store a virtual pointer (8 bytes for 64-bit systems). Static variable, member functions, constructor and destructors are not owned by the object therefore occupying no space for objects.
+
+## Inheritance and derived class
+
+The derived class inherit all contents from the base class, some of which may not be useful leading to data redundancy. Therefore, it must be used with care to avoid heavy cost of copying, constructing and destroying of a derived class object.
+
+There are three types of inheritance:
++ public inheritance: public and protected members from base class remain the same in the derived class, private members from base class is not inherited.
++ private inheritance: public and protected members from base class go to private in the derived class. 
++ protected inheritance: public and protected members from base class go to protected.
+
+Protected members are accessible to friends and member functions in a derived class.
+
+## Override, overwrite, and overload
+
+## singleton
+
+There is only one instance of the class. The instance can only be accessed by the static pointer obtained by calling a public member function.
+
+```C++
+Class CSingleton {
+private:
+    CSingleton() {
+        // constructor
+    }
+    static CSingleton *m_pInstance;
+public:
+    CSingleton* getInstance() {
+        if (!m_pInstance)
+            m_pInstance = new CSingleton();
+
+        return m_pInstance;
+    }
+}
+
+// initialize the static instance to NULL
+CSingleton* CSingleton::m_pInstance = NULL;
+```
+
 ## Macros
 
 Macro calls will be replaced with the processed copy of the body, which is called __expansion__ of the macro call. It is faster than function calls because it does not generate actual function calls.
@@ -126,6 +178,9 @@ It is the most appilcable to __high-volumn systems__ and __three-tier architectu
 
 ### Pssimistic locking
 Lock the record for exclusive use until transaction completes. It has better integrity but is vulnerable to __Deadlocks__.
+
+# Compiler 
+
 
 # References
 [The new C: inline functions | Dr Dobb's](https://www.drdobbs.com/the-new-c-inline-functions/184401540)  

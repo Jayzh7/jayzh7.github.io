@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>A glance at the sorting function of C++</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Techspace </a></h1>
+                <nav><ul>
+    
+                        <li><a href="/pages/about-me.html">about me</a></li>
+                    <li><a href="/category/leetcode.html">LeetCode</a></li>
+                    <li class="active"><a href="/category/notes.html">Notes</a></li>
+                    <li><a href="/category/other.html">Other</a></li>
+                </ul>
+                </nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/a-glance-at-the-sorting-function-of-c.html" rel="bookmark"
+           title="Permalink to A glance at the sorting function of C++">A glance at the sorting function of C++</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <span>Fri 10 July 2020</span>
+<span>| tags: <a href="/tag/c.html">C++</a></span>
+</footer><!-- /.post-info -->      <p>No matter how hard you try to implement a sorting function, it is very unlikely that its performance will be superior than the <code>sort</code> function provided by the <code>algorithm</code> library of C++ and the <code>qsort</code> provided by <code>stdlib</code> library of C. So, where do they do better?</p>
+<h1>qsort</h1>
+<p>We first discuss it on a higher (more abstract) level and then go into details of implementation.  </p>
+<h2>Core idea</h2>
+<p>The core of quick sort consists of </p>
+<ul>
+<li>Pick a median pivot from among first element, element in the middle, last element to avoid a pathological pivot that degrades the performance of quick sort (e.g. if the the smallest element is picked every time, quicksort degrades to its worst performance O(N^2)).</li>
+<li>Swap the first, middle, last element such that the one with median value is in the middle.</li>
+<li><strong>Collapse the Walls</strong> section. This is the main reason that makes the algorithm faster than most.</li>
+<li>Initialize two pointers that point to the first and last element respectively. </li>
+<li>Move left pointer to point to an element larger than pivot</li>
+<li>Move right pointer to point to an element smaller than pivot</li>
+<li>If left pointer is on the left side of right pointer, swap their value and continue. 
+    (regular so far)</li>
+<li>Now there are two partitions, based on the size of both partitions: 1) if both are smaller than the threshold, pop pointers from the stack (if any) for next iteration of partition. 2) if only one partition is smaller than the threshold, move pointers for iteration on the small partition. 3) if both are larger than the threshold, move pointers for iteration on the smaller partition and save pointers for the larger partition on the stack.</li>
+<li>Use insertion sort for every threshold (e.g. every 4 elements if the threshold is 4).</li>
+</ul>
+<h2>Some details</h2>
+<h3>non-recursive implementation of qsort</h3>
+<p>A stack is used for storing partitions pointers to avoid expensive recursive function call if both partitions are not small. Small partitions (size is smaller than the threshold) are ignored first because insertion sort is more efficient for partitions below the threshold size.</p>
+<div class="highlight"><pre><span></span><span class="cp">#define STACK_SIZE             (CHAR_BIT * sizeof (size_t))</span>
+<span class="cp">#define PUSH(low, high)        ((void) ((top-&gt;lo = (low)), (top-&gt;hi = (high)), ++top))</span>
+<span class="cp">#define POP(low, high)         ((void) (--top, (low = top-&gt;lo), (high = top-&gt;hi)))</span>
+<span class="cp">#define STACK_NOT_EMPTY        (stack &lt; top)</span>
+
+<span class="cm">/* Stack node declarations used to store unfulfilled partition obligations. */</span>
+<span class="k">typedef</span> <span class="k">struct</span>
+  <span class="p">{</span>
+    <span class="kt">char</span> <span class="o">*</span><span class="n">lo</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="o">*</span><span class="n">hi</span><span class="p">;</span>
+  <span class="p">}</span> <span class="n">stack_node</span><span class="p">;</span>
+</pre></div>
+
+
+<p>An efficient implementation of a stack. <code>top</code> refers to the pointer points to the top of the stack. Each node in the stack stores the low and high pointers of partitions still to be sorted. Each node is of size 16 bytes on a 32-bit machine. </p>
+<h3>choice of pivot</h3>
+<div class="highlight"><pre><span></span><span class="c1">// simplified version</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">mid</span> <span class="o">&lt;</span> <span class="n">low</span><span class="p">)</span> <span class="n">swap</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">low</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">high</span> <span class="o">&lt;</span> <span class="n">mid</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">swap</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">high</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">mid</span> <span class="o">&lt;</span> <span class="n">low</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">swap</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">low</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>A straightfoward way to sort three numbers. A good pivot can eliminate certain extraneous comparisons.</p>
+<h1>sort</h1>
+<p><code>sort(first, last)</code> sorts the elements in the range [<code>first</code>, <code>last</code>) into ascending order where <code>first</code> and <code>second</code> are random access iterators for which <code>swap</code> is properly defined.</p>
+<h1>References</h1>
+<p><a href="https://code.woboq.org/userspace/glibc/stdlib/qsort.c.html"><strong>qsort.c source code</strong></a>  </p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="#">FB</a></li>
+                            <li><a href="#">INS</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>

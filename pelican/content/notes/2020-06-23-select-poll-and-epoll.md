@@ -9,7 +9,7 @@ tags: Linux
 
 ## Motivation
 
-As a server, there are usually more than 1 connection to deal with. A lot of file descriptors (representing the connection) need to be monitored and responded. Conventional multithread does not work well as it involves costly context switch.
+As a server, there are usually more than 1 connection to deal with. A lot of [file descriptors](https://en.wikipedia.org/wiki/File_descriptor)(representing the connection) need to be monitored and responded. Conventional multithread does not work well as it involves costly context switch.
 
 A simple loop would be too slow and inefficient.
 ```C
@@ -21,8 +21,11 @@ for x in open_connections:
 Linux offered three ways to monitor the `fd`s: `select`, `poll`, `epoll`.
 
 ## Select & Poll
-`select` accepts a list of file descriptors to get information about, and returns the information about which `fd` to write or read.
 
+### select
+`select` accepts a list of file descriptors to get information about, and returns the information about which `fd` to write or read. See source code on:  
+- Github - [`select`](https://github.com/torvalds/linux/blob/v4.10/fs/select.c#L634-L656), [`do_select`](https://github.com/torvalds/linux/blob/v4.10/fs/select.c#L404-L542)
+- Bootlin - [`select`](https://elixir.bootlin.com/linux/latest/source/fs/select.c#L722), [`do_select`](https://elixir.bootlin.com/linux/latest/source/fs/select.c#L728)
 ```C
 // sys call for __select__
 /********************
@@ -38,9 +41,15 @@ SYSCALL_DEFINE5(select, int, n, fd_set __user *, inp, fd_set __user *, outp, fd_
 
 Cons of `select`:
 1. the sets need to be re-initialized every time before being passed to `select` and cannot be reused. 
-2. 1024 tasks at most (can be modified but leads to slow performance).
+2. at most 1024 tasks (can be modified but leads to slow performance).
 3. the cost of copying `fd`s from user space to kernel space is high.
 4. requires iterating through the whole `fd` list after returning which is `O(n)` complexity.
+
+### poll
+
+Instead of using bitmaps, `poll` accepts an array of `pollfd` to monitor the specific tasks. This is especially useful when the `fd`s you want to monitor is sparse because you don't need to go through all the `fd`s every time but only iterate through the specific ones. Also, instead of having only 3 set of events like `select` (read, write, exception), the `events` variable in `pollfd` allows you to set events you'd like to monitor. See a comprehensive list of events [here](see https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/poll.h).  Source code can be found at:
+
+- [Bootlin](https://elixir.bootlin.com/linux/latest/source), definition of [`ppoll`](https://elixir.bootlin.com/linux/latest/source/fs/select.c#L1081) and [`do_sys_poll`](https://elixir.bootlin.com/linux/latest/source/fs/select.c#L960).
 
 ```C
 // structure of `pollfd`.
@@ -59,7 +68,7 @@ nfds:  number of fds to monitor
 SYSCALL_DEFINE5(ppoll, struct pollfd __user *, ufds, unsigned int, nfds, struct timespec __user *, tsp, const sigset_t __user *, sigmask,
 size_t, sigsetsize)
 ```
-Instead of using bitmaps, `poll` accepts an array of `pollfd` to monitor the specific tasks. This is especially useful when the `fd`s you want to monitor is sparse because you don't need to go through all the `fd`s every time but only iterate through the specific ones. Also, instead of having only 3 set of events like `select` (read, write, exception), the `events` variable in `pollfd` allows you to set events you'd like to monitor. See a comprehensive list of events [here](see https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/poll.h).
+
 
 Cons of `select`:  
 3 & 4 of `poll`.
