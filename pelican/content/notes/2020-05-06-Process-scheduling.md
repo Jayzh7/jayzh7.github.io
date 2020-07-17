@@ -1,10 +1,12 @@
 ---
+layout: post
+published: true
 title: Linux kernel development - Process scheduling
 date: 2020-05-06 10:03
 summary: Process scheduler - the kernel subsystem that puts processes to work.
 category: notes
 visible: True 
-tags: Linux, Linux kernel
+tags: Linux
 --- 
 
 The process scheduler aims to best utilize processor time. Deciding which process(es) to run next, given a list of runnable processes, is the fundamental decision that the scheduler must take.

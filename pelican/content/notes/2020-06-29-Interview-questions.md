@@ -166,6 +166,22 @@ There is a map that maps the file name to inode index, with which the inode can 
 
 In Linux, `fork()` creates new processes. These new processes are called child processes and they intially share all the segments like `text`, `stack`, `heap`, etc until child tries to make changes to them.
 
+Threads of the same process runs in shared memory space and share resources. Each thread has its own CPU registers (__stack pointer__, __program counter__), scheduling priority, identifier, etc. In Linux, threads are of seen as processes by the kernel but they happen to share some resources.
+
+Process provides each program with __two key abstractions__:
++ logical control flow  
+Each process seems to have exclusive use of the CPU
++ private virtual address space
+Each process seems to have exclusive use of main memory
+
+
+## Thread context switch and process context switch  
+
+See [original](https://stackoverflow.com/questions/5440128/thread-context-switch-vs-process-context-switch). 
++ During a thread context switch, the virtual memory space remain the same while it is not the case for process context switch. 
++ Both involves switching in and out of the OS kernel as well as the registers.
++ When we change virtual memory space (process context switch), the processor's Translation Lookaside Buffer (TLB) or equivalent gets flushed making memory access more expensive for a while.
+
 # Database
 
 ## Pessimistic and Optimistic locking
@@ -183,8 +199,9 @@ Lock the record for exclusive use until transaction completes. It has better int
 
 
 # References
-[The new C: inline functions | Dr Dobb's](https://www.drdobbs.com/the-new-c-inline-functions/184401540)  
-[Inline function - Wikipedia](https://en.wikipedia.org/wiki/Inline_function)  
-[inode - Wikipedia](https://en.wikipedia.org/wiki/Inode)  
-[Optimistic vs. Pessimistic locking - Stackoverflow](https://stackoverflow.com/questions/129329/optimistic-vs-pessimistic-locking)  
-[What are Linux Processes, Threads, Light Weight Processes, and Process State - THE GEEK STUFF](https://www.thegeekstuff.com/2013/11/linux-process-and-threads/#:~:text=Linux%20Threads%20vs%20Light%20Weight,known%20as%20multi%2Dthreaded%20process.&text=Each%20thread%20is%20viewed%20by,different%20from%20other%20normal%20processes.)  
+[_The new C: inline functions | Dr Dobb's_](https://www.drdobbs.com/the-new-c-inline-functions/184401540)  
+[_Inline function - Wikipedia_](https://en.wikipedia.org/wiki/Inline_function)  
+[_inode - Wikipedia_](https://en.wikipedia.org/wiki/Inode)  
+[_Optimistic vs. Pessimistic locking - Stackoverflow_](https://stackoverflow.com/questions/129329/optimistic-vs-pessimistic-locking)  
+[_What are Linux Processes, Threads, Light Weight Processes, and Process State - THE GEEK STUFF_](https://www.thegeekstuff.com/2013/11/linux-process-and-threads/#:~:text=Linux%20Threads%20vs%20Light%20Weight,known%20as%20multi%2Dthreaded%20process.&text=Each%20thread%20is%20viewed%20by,different%20from%20other%20normal%20processes.)  
+[_C++ tutorial - MULTI-THREADED PROGRAMMING TERMINOLOGY - 2020_](https://www.bogotobogo.com/cplusplus/multithreaded.php)

@@ -1,11 +1,13 @@
 ---
+layout: post
+published: true
 title: VGG and hourglass
 date: 2020-05-06 10:51
 summary: Two common architectures for face alignment. What are their differences?
 category: notes
 visible: True
 tags: ML
---- 
+---
 
 ## VGGNet
 

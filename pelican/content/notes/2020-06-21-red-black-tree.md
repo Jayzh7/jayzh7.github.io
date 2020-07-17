@@ -1,10 +1,12 @@
 ---
+layout: post
+published: true
 title: red black tree
 date: 2020-06-21 22:22
 summary: 
 category: notes
 visible: True
-tags: Data Structure
+tags: DataStructure
 ext-js: https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML
 ---
 

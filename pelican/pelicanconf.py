@@ -30,7 +30,7 @@ LINKS = (('Pelican', 'http://getpelican.com/'),
 SOCIAL = (('FB', '#'),
           ('INS', '#'),)
 
-DEFAULT_PAGINATION = 10
+DEFAULT_PAGINATION = False
 OUTPUT_PATH = '../'
 
 SUMMARY_MAX_LENGTH = 25

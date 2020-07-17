@@ -1,9 +1,11 @@
 ---
+layout: post
+published: true
 title: Linux kernel development - Introduction
-date: 2020-04-28 21:15
+date: 2020-04-28 21:15:00 +0100
 category: notes
 visible: True
-tags: Linux, Linux kernel
+tags: Linux
 --- 
 
 ## 1 Overview of OS and Kernels

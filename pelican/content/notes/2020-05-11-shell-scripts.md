@@ -1,10 +1,12 @@
 ---
+layout: post
+published: true
 title: Shell scripts - notes on missing lectures
 date: 2020-05-11 23:13 
 summary: 
 category: notes
 visible: False
-tags: Linux, Missing lecture
+tags: Linux
 ---
 
 ## Shell scripting

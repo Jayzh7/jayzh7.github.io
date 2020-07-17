@@ -1,4 +1,6 @@
 ---
+layout: post
+published: true
 title: Editor-vim (notes of a MIT lecture)
 date: 2020-05-09 22:30
 summary: about vim

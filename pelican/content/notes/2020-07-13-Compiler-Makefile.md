@@ -4,7 +4,7 @@ date: 2020-07-13 12:05 +0800
 summary: Makefile is necessary for building large, complicated projects.
 category: Notes
 visible: True
-tags: compiler, backend
+tags: compiler
 ---
 
 Definition from [Wikipedia](https://en.wikipedia.org/wiki/Makefile#:~:text=A%20makefile%20is%20a%20file,to%20generate%20a%20target%2Fgoal.):

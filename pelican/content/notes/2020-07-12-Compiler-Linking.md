@@ -4,7 +4,7 @@ date: 2020-07-12 16:18
 summary: Compiling source code does not generate an executable without proper linking.
 category: Notes
 visible: True
-tags: compiler, backend
+tags: compiler
 ---
 
 Linking refers to the process of creating an executable file from multiple object files. 

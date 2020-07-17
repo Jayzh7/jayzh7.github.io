@@ -81,11 +81,11 @@ As the name suggests, it sorts the contents of a file alphabetically.
 ``` bash
 $ cat -n /etc/passwd  # display line numbers in file
 $ cat -e test  # display $ at the end of line
-hello everyone, how do you do?$
-$
-Hey, I am fine.$
-How is  your training going on?$
-$
+    hello everyone, how do you do?$
+    $
+    Hey, I am fine.$
+    How is  your training going on?$
+    $
 ```
 
 ## Use std output with redirection operators

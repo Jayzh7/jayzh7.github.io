@@ -1,4 +1,6 @@
 ---
+layout: post
+published: true
 title: Select, poll, and epoll on Linux
 date: 2020-06-23 09:03
 summary: 
@@ -110,15 +112,15 @@ Due to the cons of `select` and `poll`, they are less widely used.
 ```
 3. call `epoll_wait` to wait for updates and iterate through all active events.
 ```C
-    struct epoll_event events[5];
-    while (1) {
-        nfds = epoll_wait(epfd, events, 5, 10000);
+struct epoll_event events[5];
+while (1) {
+    nfds = epoll_wait(epfd, events, 5, 10000);
 
-        for (int i = 0; i < nfds; ++i) {
-            read(events[i].data.fd, ...);
-            process();
-        }
+    for (int i = 0; i < nfds; ++i) {
+        read(events[i].data.fd, ...);
+        process();
     }
+}
 ```
 
 The `epoll_wait` will re-order the `fd`s such that active ones are at the beginning (this is efficient  due to the implementation of a red-black tree that allows fast O(lgN) insertion and deletion.)

@@ -1,4 +1,6 @@
 ---
+layout: post
+published: true
 title: How do shell and Vim coexist?
 date: 2020-05-24 22:08
 summary: It is often the case that we want to modify the code according to the output of a command. How do we keep them both at the same time? 

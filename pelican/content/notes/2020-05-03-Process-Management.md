@@ -1,10 +1,12 @@
 ---
+layout: post
+published: true
 title: Linux kernel development - Process Management
 date: 2020-05-03 16:02
 summary: Process and its related concepts like threads, how the Linux kernel manages each process - how they are enumerated within the kernel, how they are created ...
 category: notes
 visible: True
-tags: Linux, Linux kernel
+tags: Linux
 --- 
 
 ## The process

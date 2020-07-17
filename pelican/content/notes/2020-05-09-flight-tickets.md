@@ -1,4 +1,6 @@
 ---
+layout: post
+published: true
 title: flight to home
 date: 2020-05-09 22:30
 summary: flight ticket information gathered manually
